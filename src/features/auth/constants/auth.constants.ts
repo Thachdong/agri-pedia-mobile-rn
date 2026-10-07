@@ -72,3 +72,16 @@ export const RESET_PASSWORD_ERROR_FIELDS = {
 
 /** Errors of POST /auth/reset-password shown under the form with a "Kích hoạt" link (account still PENDING). */
 export const RESET_PASSWORD_ACTIVATE_LINK_ERRORS: readonly string[] = ['OTP_ACCOUNT_NOT_ACTIVE'];
+
+/**
+ * Domain errors of POST /auth/reset-password/confirm (+ /auth/resend RESET_PASSWORD) that belong to a field (same text as
+ * web). Others (OTP_ALREADY_CONSUMED, OTP_BLOCKED + blockUntil, ...) → under the form via applyServerErrors / getErrorMessage.
+ */
+export const CHANGE_PASSWORD_ERROR_FIELDS = {
+  OTP_INVALID_CODE: { field: 'code', message: 'Mã xác nhận không đúng' },
+  OTP_EXPIRED: { field: 'code', message: 'Mã đã hết hạn, bấm Gửi lại để nhận mã mới' },
+  OTP_NOT_FOUND: { field: 'identifier', message: 'Chưa có yêu cầu reset mật khẩu cho tài khoản này' },
+} as const;
+
+/** Errors of the change-password form shown with a link to /auth/reset-password (ask for a new code). */
+export const CHANGE_PASSWORD_RESET_LINK_ERRORS: readonly string[] = ['OTP_NOT_FOUND', 'OTP_ALREADY_CONSUMED'];

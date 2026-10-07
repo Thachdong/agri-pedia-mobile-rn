@@ -19,6 +19,9 @@ export type TActivateFormValues = TActivateInput & { loginType: TLoginType };
 /** Reset-password form values — same shape as the request (loginType is sent: the server matches it). */
 export type TResetPasswordFormValues = TRequestPasswordResetInput;
 
+/** Change-password form values — adds `loginType` (picks the identifier rule) and `confirmPassword`; both client only. */
+export type TChangePasswordFormValues = TConfirmPasswordResetInput & { loginType: TLoginType; confirmPassword: string };
+
 /** Code purpose: ACTIVATE_DISTRIBUTOR (sent at register) | RESET_PASSWORD. */
 export type TOtpPurpose = TResendCodeInput['purpose'];
 
