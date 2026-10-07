@@ -5,6 +5,7 @@ import { toast } from '@/shared/lib/toast';
 import { jsonResponse, mockFetch, renderWithProviders } from '@/test-utils';
 import { register } from '../services/auth.service';
 import { authHandoffStore } from '../utils/auth-handoff.store';
+import { loginHandoffStore } from '../utils/login-handoff.store';
 import { RegisterForm } from './register-form';
 
 const mockRouter = { replace: jest.fn(), push: jest.fn(), back: jest.fn() };
@@ -99,7 +100,7 @@ describe('RegisterForm', () => {
     });
   });
 
-  it('FARMER success: toast and /auth/login, no handoff', async () => {
+  it('FARMER success: toast and /auth/login, login pre-fill saved, no activate handoff', async () => {
     jest.mocked(register).mockResolvedValue(undefined);
     await renderWithProviders(<RegisterForm />);
     await fillValidDistributor();
@@ -111,6 +112,10 @@ describe('RegisterForm', () => {
     expect(jest.mocked(register).mock.calls[0]?.[0]).toMatchObject({ role: 'FARMER', bussinessType: null });
     expect(toast.success).toHaveBeenCalled();
     expect(await authHandoffStore.read('ACTIVATE_DISTRIBUTOR')).toBeNull();
+    expect(await loginHandoffStore.read()).toEqual({
+      loginType: jest.mocked(register).mock.calls[0]?.[0].loginType,
+      identifier: jest.mocked(register).mock.calls[0]?.[0].identifier,
+    });
   });
 
   it('USER_IDENTIFIER_ALREADY_USED goes under the identifier, no navigation', async () => {

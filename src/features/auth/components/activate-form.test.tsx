@@ -6,6 +6,7 @@ import { renderWithProviders } from '@/test-utils';
 import { activate, resendCode } from '../services/auth.service';
 import type { TAuthHandoff } from '../types/auth.types';
 import { authHandoffStore } from '../utils/auth-handoff.store';
+import { loginHandoffStore } from '../utils/login-handoff.store';
 import { ActivateForm } from './activate-form';
 
 const mockRouter = { replace: jest.fn(), push: jest.fn(), back: jest.fn() };
@@ -174,7 +175,7 @@ describe('ActivateForm', () => {
       expect(activate).not.toHaveBeenCalled();
     });
 
-    it('success → sends identifier + code, clears handoff, toast, replace /auth/login', async () => {
+    it('success → sends identifier + code, clears handoff, saves login pre-fill, toast, replace /auth/login', async () => {
       jest.mocked(activate).mockResolvedValue(undefined);
       await renderWithHandoff(handoff());
       await fireEvent.changeText(screen.getByLabelText('Code'), '123456');
@@ -185,6 +186,7 @@ describe('ActivateForm', () => {
       expect(activate).toHaveBeenCalledWith({ identifier: '0901234567', code: '123456' });
       expect(toast.success).toHaveBeenCalled();
       expect(await authHandoffStore.read('ACTIVATE_DISTRIBUTOR')).toBeNull();
+      expect(await loginHandoffStore.read()).toEqual({ loginType: 'PHONE', identifier: '0901234567' });
     });
 
     it.each([

@@ -6,6 +6,7 @@ import { renderWithProviders } from '@/test-utils';
 import { confirmPasswordReset, resendCode } from '../services/auth.service';
 import type { TAuthHandoff } from '../types/auth.types';
 import { authHandoffStore } from '../utils/auth-handoff.store';
+import { loginHandoffStore } from '../utils/login-handoff.store';
 import { ChangePasswordForm } from './change-password-form';
 
 const mockRouter = { replace: jest.fn(), push: jest.fn(), back: jest.fn() };
@@ -130,7 +131,7 @@ describe('ChangePasswordForm', () => {
       expect(confirmPasswordReset).not.toHaveBeenCalled();
     });
 
-    it('success → sends identifier + code + newPassword only, clears handoff, toast, replace /auth/login', async () => {
+    it('success → sends identifier + code + newPassword only, clears handoff, saves login pre-fill, replace /auth/login', async () => {
       jest.mocked(confirmPasswordReset).mockResolvedValue(undefined);
       await renderWithHandoff(handoff());
       await fillPasswordAndCode();
@@ -145,6 +146,7 @@ describe('ChangePasswordForm', () => {
       });
       expect(toast.success).toHaveBeenCalled();
       expect(await authHandoffStore.read('RESET_PASSWORD')).toBeNull();
+      expect(await loginHandoffStore.read()).toEqual({ loginType: 'PHONE', identifier: '0901234567' });
     });
 
     it('locks submit from success until redirect (no second request)', async () => {
