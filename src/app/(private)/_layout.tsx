@@ -1,5 +1,5 @@
 import { Redirect, Stack, usePathname } from 'expo-router';
-import { useSession } from '@/features/auth';
+import { usePrivateGuard } from '@/features/auth';
 import { ROUTES } from '@/shared/constants';
 
 /**
@@ -8,10 +8,10 @@ import { ROUTES } from '@/shared/constants';
  * route instead of the login screen the spec asks for.
  */
 export default function PrivateLayout() {
-  const { status } = useSession();
+  const guard = usePrivateGuard();
   const pathname = usePathname();
 
-  if (status === 'loading') return null;
-  if (status === 'guest') return <Redirect href={{ pathname: ROUTES.login, params: { from: pathname } }} />;
+  if (guard === 'wait') return null;
+  if (guard === 'login') return <Redirect href={{ pathname: ROUTES.login, params: { from: pathname } }} />;
   return <Stack screenOptions={{ headerShown: false }} />;
 }

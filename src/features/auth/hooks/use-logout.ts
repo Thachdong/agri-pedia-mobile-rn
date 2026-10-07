@@ -5,8 +5,9 @@ import { useAppMutation, useAppQueryClient } from '@/shared/lib/query';
 import { logout } from '../services/session.service';
 
 /**
- * Ends the session: POST /auth/logout best effort (offline / already revoked is fine), then always
- * clears tokens + the whole cache (no data of the previous user survives) and goes home.
+ * Ends the session: POST /auth/logout best effort (offline / already revoked is fine), then always clears
+ * tokens (reason `logout`, so an open private screen waits instead of redirecting to login) + the whole cache
+ * (no data of the previous user survives), and goes home.
  */
 export function useLogout() {
   const queryClient = useAppQueryClient();
@@ -20,7 +21,7 @@ export function useLogout() {
     invalidates: false, // cache is cleared below
     meta: { silent: true },
     onSettled: async () => {
-      await tokenStore.clear();
+      await tokenStore.clear('logout');
       queryClient.clear();
       router.replace(ROUTES.home);
     },

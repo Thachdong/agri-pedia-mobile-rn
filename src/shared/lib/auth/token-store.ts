@@ -5,12 +5,17 @@ export type TTokenPair = {
   refreshToken: string;
 };
 
+/** Why the last session ended: the user logged out, or the server rejected the refresh token. */
+export type TSessionEndReason = 'logout' | 'expired';
+
 const STORAGE_KEY = 'agripedia.tokens';
 
 type TListener = () => void;
 
 let current: TTokenPair | null = null;
 let loaded = false;
+let endCount = 0;
+let endReason: TSessionEndReason | null = null;
 const listeners = new Set<TListener>();
 
 function notify() {
@@ -46,18 +51,27 @@ export const tokenStore = {
 
   get: (): TTokenPair | null => current,
 
+  /** Keychain first: if it fails, memory keeps the previous pair and the error reaches the caller. */
   async set(pair: TTokenPair): Promise<void> {
+    await SecureStore.setItemAsync(STORAGE_KEY, JSON.stringify(pair));
     current = pair;
     notify();
-    await SecureStore.setItemAsync(STORAGE_KEY, JSON.stringify(pair));
   },
 
-  async clear(): Promise<void> {
+  /** Ends the session. Memory first (takes effect even if the keychain fails), then the keychain. */
+  async clear(reason: TSessionEndReason = 'expired'): Promise<void> {
     if (!current) return;
     current = null;
+    endCount += 1;
+    endReason = reason;
     notify();
     await SecureStore.deleteItemAsync(STORAGE_KEY);
   },
+
+  /** Increments on every session end — lets a mounted screen tell "ended while I was open" from "already ended". */
+  sessionEndCount: (): number => endCount,
+
+  lastEndReason: (): TSessionEndReason | null => endReason,
 
   /** Fires on every change (login, rotation by refresh, logout) — realtime reconnects on it. */
   subscribe(listener: TListener): () => void {

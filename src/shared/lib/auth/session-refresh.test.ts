@@ -48,6 +48,22 @@ describe('session refresh through http', () => {
     expect(tokenStore.get()).toEqual(NEW);
   });
 
+  // Regression (foundation CP8): a 401 arriving after another request already refreshed used to refresh again.
+  it('retries with the current token, without refreshing again, when the token was rotated meanwhile', async () => {
+    fetchMock.mockImplementation(async (url, init) => {
+      if (url.endsWith('/auth/refresh-token')) return jsonResponse(200, NEW);
+      const auth = (init?.headers as Record<string, string>).authorization;
+      if (auth === `Bearer ${NEW.accessToken}`) return jsonResponse(200, { url });
+      // Another request finished a refresh while this one was in flight with the old token.
+      await tokenStore.set(NEW);
+      return expired();
+    });
+
+    await expect(http.get('/late')).resolves.toEqual({ url: 'http://api.test/late' });
+    expect(refreshCalls(fetchMock)).toHaveLength(0);
+    expect(fetchCall(fetchMock, 1).headers.authorization).toBe(`Bearer ${NEW.accessToken}`);
+  });
+
   it('clears the session and emits session-expired when the refresh token is rejected', async () => {
     fakeApi(fetchMock, async () =>
       jsonResponse(401, { statusCode: 401, code: 'USER_INVALID_REFRESH_TOKEN', message: 'revoked' }),
@@ -58,6 +74,7 @@ describe('session refresh through http', () => {
     await expect(http.get('/users/me')).rejects.toMatchObject({ status: 401, code: 'AUTH_INVALID_ACCESS_TOKEN' });
 
     expect(tokenStore.get()).toBeNull();
+    expect(tokenStore.lastEndReason()).toBe('expired');
     expect(listener).toHaveBeenCalledTimes(1);
     unsubscribe();
   });

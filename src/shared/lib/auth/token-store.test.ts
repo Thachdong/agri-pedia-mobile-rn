@@ -35,6 +35,27 @@ describe('tokenStore', () => {
     unsubscribe();
   });
 
+  // Regression (foundation CP8): memory used to change before the keychain write, leaving them out of sync on failure.
+  it('keeps the previous pair in memory and rethrows when the keychain write fails', async () => {
+    await tokenStore.set(PAIR);
+    jest.mocked(SecureStore.setItemAsync).mockRejectedValueOnce(new Error('keychain locked'));
+
+    await expect(tokenStore.set({ accessToken: 'a2', refreshToken: 'r2' })).rejects.toThrow('keychain locked');
+    expect(tokenStore.get()).toEqual(PAIR);
+  });
+
+  it('records why and how many times the session ended', async () => {
+    const before = tokenStore.sessionEndCount();
+    await tokenStore.set(PAIR);
+
+    await tokenStore.clear('logout');
+
+    expect(tokenStore.lastEndReason()).toBe('logout');
+    expect(tokenStore.sessionEndCount()).toBe(before + 1);
+    await tokenStore.clear('expired'); // no session → no-op
+    expect(tokenStore.sessionEndCount()).toBe(before + 1);
+  });
+
   describe('load', () => {
     // load() runs once per process; isolate the module to start from "not loaded".
     const freshStore = () => {

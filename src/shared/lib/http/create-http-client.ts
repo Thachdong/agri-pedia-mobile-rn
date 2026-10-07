@@ -49,6 +49,9 @@ async function parseBody(response: Response): Promise<unknown> {
 
 export function createHttpClient(config: TCreateHttpClientConfig): IHttpClient {
   async function send(method: THttpMethod, path: string, body: unknown, options: TRequestOptions | undefined) {
+    // A signal aborted before sending: don't send (the abort listener below would never fire).
+    if (options?.signal?.aborted) throw options.signal.reason ?? new Error('Aborted');
+
     const headers: Record<string, string> = {
       accept: 'application/json',
       ...(await config.getHeaders?.(path)),
@@ -75,12 +78,13 @@ export function createHttpClient(config: TCreateHttpClientConfig): IHttpClient {
     options?.signal?.addEventListener('abort', onCallerAbort);
 
     try {
-      return await fetch(buildUrl(config.baseUrl, path, options?.query), {
+      const response = await fetch(buildUrl(config.baseUrl, path, options?.query), {
         method,
         headers,
         body: payload,
         signal: controller.signal,
       });
+      return { response, headers };
     } catch (cause) {
       if (options?.signal?.aborted) throw cause; // caller cancelled (react-query) — not an app error
       throw new AppError(
@@ -95,13 +99,13 @@ export function createHttpClient(config: TCreateHttpClientConfig): IHttpClient {
   }
 
   async function request<T>(method: THttpMethod, path: string, body?: unknown, options?: TRequestOptions): Promise<T> {
-    let response = await send(method, path, body, options);
+    let { response, headers } = await send(method, path, body, options);
 
     if (response.status === 401 && config.onUnauthorized) {
       const error = toAppError(response.status, await parseBody(response));
-      const shouldRetry = await config.onUnauthorized({ method, path, error });
+      const shouldRetry = await config.onUnauthorized({ method, path, error, requestHeaders: headers });
       if (!shouldRetry) throw error;
-      response = await send(method, path, body, options);
+      ({ response } = await send(method, path, body, options));
     }
 
     const data = await parseBody(response);

@@ -18,6 +18,8 @@ export type TUnauthorizedContext = {
   method: THttpMethod;
   path: string;
   error: unknown;
+  /** Headers the rejected request was sent with — lets the session layer see which access token was used. */
+  requestHeaders: Record<string, string>;
 };
 
 /** HTTP client of the project — services call it, never `fetch`. */

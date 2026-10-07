@@ -110,10 +110,8 @@ describe('createHttpClient', () => {
     await expect(promise).rejects.toBe(abortError);
   });
 
-  // KNOWN BUG (reported in foundation CP6): a signal already aborted before the request is sent is ignored,
-  // because the abort listener is attached after the fact. Remove `.failing` once create-http-client checks
-  // `options.signal.aborted` up front.
-  it.failing('does not send the request when the caller signal is already aborted', async () => {
+  // Regression (foundation CP8): a signal aborted before sending used to be ignored.
+  it('does not send the request when the caller signal is already aborted', async () => {
     fetchMock.mockResolvedValue(jsonResponse(200, {}));
     const controller = new AbortController();
     controller.abort();
@@ -141,7 +139,13 @@ describe('createHttpClient', () => {
 
       await expect(http.get('/users/me')).resolves.toEqual({ id: 'me' });
       expect(onUnauthorized).toHaveBeenCalledTimes(1);
-      expect(onUnauthorized).toHaveBeenCalledWith(expect.objectContaining({ method: 'GET', path: '/users/me' }));
+      expect(onUnauthorized).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'GET',
+          path: '/users/me',
+          requestHeaders: expect.objectContaining({ authorization: 'Bearer old' }),
+        }),
+      );
       expect(fetchCall(fetchMock, 1).headers.authorization).toBe('Bearer new');
     });
 
