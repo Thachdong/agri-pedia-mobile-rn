@@ -1,5 +1,5 @@
 import type { TActivateFormValues } from '../types/auth.types';
-import { activateSchema } from './activate.schema';
+import { activateSchema, toIdentifier } from './activate.schema';
 
 const VALID: TActivateFormValues = { loginType: 'EMAIL', identifier: 'nhaphanphoi@example.com', code: '123456' };
 
@@ -30,5 +30,19 @@ describe('activateSchema', () => {
 
   it('empty code → asks for all digits', () => {
     expect(errorsOf({ code: '' })).toEqual({ code: 'Vui lòng nhập đủ 6 chữ số' });
+  });
+});
+
+describe('toIdentifier', () => {
+  it('PHONE: strips separators like the schema', () => {
+    expect(toIdentifier('PHONE', ' 090 123.4567 ')).toBe('0901234567');
+  });
+
+  it('EMAIL: trims', () => {
+    expect(toIdentifier('EMAIL', ' npp@example.com ')).toBe('npp@example.com');
+  });
+
+  it('invalid → trimmed input', () => {
+    expect(toIdentifier('PHONE', ' abc ')).toBe('abc');
   });
 });

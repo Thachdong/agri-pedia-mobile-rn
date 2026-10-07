@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { AppError, getErrorMessage } from '@/shared/lib/http';
 import { toast } from '@/shared/lib/toast';
 import { renderWithProviders } from '@/test-utils';
@@ -105,6 +105,45 @@ describe('ActivateForm', () => {
           purpose: 'ACTIVATE_DISTRIBUTOR',
         }),
       );
+    });
+
+    it('PHONE: sends and saves the phone without separators', async () => {
+      jest.mocked(resendCode).mockResolvedValue(undefined);
+      await renderWithProviders(<ActivateForm />);
+      await fireEvent.press(await screen.findByRole('tab', { name: 'PHONE' }));
+      await fireEvent.changeText(screen.getByLabelText('Số điện thoại'), '090 123.4567');
+
+      await fireEvent.press(resendButton());
+
+      await waitFor(() =>
+        expect(resendCode).toHaveBeenCalledWith({ identifier: '0901234567', purpose: 'ACTIVATE_DISTRIBUTOR' }),
+      );
+      await waitFor(async () =>
+        expect(await authHandoffStore.read('ACTIVATE_DISTRIBUTOR')).toMatchObject({
+          loginType: 'PHONE',
+          identifier: '0901234567',
+        }),
+      );
+    });
+
+    it('tab switched while sending: handoff keeps the sent login type, new tab stays idle', async () => {
+      let resolve: () => void = () => undefined;
+      jest.mocked(resendCode).mockImplementation(() => new Promise<void>((r) => (resolve = r)));
+      await renderWithProviders(<ActivateForm />);
+      await fireEvent.changeText(await screen.findByLabelText('Email'), 'npp@example.com');
+      await fireEvent.press(resendButton());
+      await waitFor(() => expect(resendCode).toHaveBeenCalled());
+
+      await fireEvent.press(screen.getByRole('tab', { name: 'PHONE' }));
+      await act(async () => resolve());
+
+      await waitFor(async () =>
+        expect(await authHandoffStore.read('ACTIVATE_DISTRIBUTOR')).toMatchObject({
+          loginType: 'EMAIL',
+          identifier: 'npp@example.com',
+        }),
+      );
+      expect(screen.queryByText(COUNTDOWN)).toBeNull();
     });
 
     it('OTP_BLOCKED with blockUntil → message under the form', async () => {

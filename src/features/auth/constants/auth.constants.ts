@@ -58,3 +58,6 @@ export const ACTIVATE_ERROR_FIELDS = {
   OTP_EXPIRED: { field: 'code', message: 'Mã đã hết hạn, bấm Gửi lại để nhận mã mới' },
   OTP_NOT_FOUND: { field: 'identifier', message: 'Không tìm thấy mã kích hoạt cho tài khoản này' },
 } as const;
+
+/** Errors of POST /auth/activate shown under the form with a "Đăng nhập" link (the account is already active). */
+export const ACTIVATE_LOGIN_LINK_ERRORS: readonly string[] = ['OTP_ALREADY_CONSUMED'];

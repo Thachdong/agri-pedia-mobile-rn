@@ -12,6 +12,7 @@ import { cn } from '@/shared/lib/utils';
 import { TEXT } from '@/shared/theme';
 import {
   ACTIVATE_ERROR_FIELDS,
+  ACTIVATE_LOGIN_LINK_ERRORS,
   IDENTIFIER_INPUT,
   IDENTIFIER_LABELS,
   LOGIN_TYPE_OPTIONS,
@@ -21,11 +22,14 @@ import {
 import { useActivate } from '../hooks/use-activate';
 import { useAuthHandoff } from '../hooks/use-auth-handoff';
 import { useResendCode } from '../hooks/use-resend-code';
-import { activateSchema } from '../schemas/activate.schema';
+import { activateSchema, toIdentifier } from '../schemas/activate.schema';
 import type { TActivateFormValues, TLoginType } from '../types/auth.types';
 import { authHandoffStore } from '../utils/auth-handoff.store';
 
 const PURPOSE = 'ACTIVATE_DISTRIBUTOR';
+
+/** Root error `type` of errors that come with a login link. */
+const LOGIN_LINK_ERROR = 'login-link';
 
 const DEFAULT_VALUES: TActivateFormValues = { loginType: 'EMAIL', identifier: '', code: '' };
 
@@ -74,9 +78,8 @@ export function ActivateForm({ className }: TActivateFormProps) {
       form.setError(field, { type: 'server', message }, { shouldFocus: true });
       return;
     }
-    if (error.code === 'OTP_ALREADY_CONSUMED') {
-      // `type` = code → the message gets a login link.
-      form.setError(FORM_ROOT_ERROR, { type: error.code, message: getErrorMessage(error) });
+    if (ACTIVATE_LOGIN_LINK_ERRORS.includes(error.code)) {
+      form.setError(FORM_ROOT_ERROR, { type: LOGIN_LINK_ERROR, message: getErrorMessage(error) });
       return;
     }
     applyServerErrors(form, error);
@@ -93,17 +96,22 @@ export function ActivateForm({ className }: TActivateFormProps) {
     const isIdentifierValid = await form.trigger('identifier', { shouldFocus: true });
     if (!isIdentifierValid) return;
 
-    const identifier = form.getValues('identifier').trim();
+    // Fixed at send time: switching tab while the request runs must not mix login types in the handoff.
+    const sentLoginType = form.getValues('loginType');
+    const identifier = toIdentifier(sentLoginType, form.getValues('identifier'));
     resendMutation.mutate(
       { identifier },
       {
         onSuccess: async () => {
           const at = new Date().toISOString();
-          countdown.restart(at);
-          form.resetField('code');
-          form.setFocus('code');
+          // Tab switched meanwhile → the form is reset for the other login type; leave it idle.
+          if (form.getValues('loginType') === sentLoginType) {
+            countdown.restart(at);
+            form.resetField('code');
+            form.setFocus('code');
+          }
           // Persisted so the countdown survives an app restart.
-          await authHandoffStore.save({ loginType: form.getValues('loginType'), identifier, at, purpose: PURPOSE });
+          await authHandoffStore.save({ loginType: sentLoginType, identifier, at, purpose: PURPOSE });
         },
         onError: showError,
       },
@@ -198,7 +206,7 @@ export function ActivateForm({ className }: TActivateFormProps) {
             <Text accessibilityLiveRegion="polite" className={cn(TEXT.bodyMedium, 'text-center text-destructive')}>
               {rootError.message}
             </Text>
-            {rootError.type === 'OTP_ALREADY_CONSUMED' && (
+            {rootError.type === LOGIN_LINK_ERROR && (
               <Link href={ROUTES.login} replace asChild>
                 <Pressable accessibilityRole="link" hitSlop={10} className="min-h-11 justify-center">
                   <Text className={cn(TEXT.labelLarge, 'text-highlight underline')}>Đăng nhập</Text>
