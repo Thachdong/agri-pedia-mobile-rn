@@ -9,6 +9,7 @@ export { SessionListener } from './components/session-listener';
 export { currentUserQuery } from './hooks/session.queries';
 export { useActivate } from './hooks/use-activate';
 export { useConfirmPasswordReset } from './hooks/use-confirm-password-reset';
+export { useLogin } from './hooks/use-login';
 export { useLogout } from './hooks/use-logout';
 export { useRegister } from './hooks/use-register';
 export { useRequestPasswordReset } from './hooks/use-request-password-reset';
@@ -21,6 +22,7 @@ export type {
   TActivateInput,
   TBusinessType,
   TConfirmPasswordResetInput,
+  TLoginInput,
   TLoginType,
   TOtpPurpose,
   TRegisterInput,

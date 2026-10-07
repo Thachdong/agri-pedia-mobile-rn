@@ -1,7 +1,10 @@
+import { AUTH_PATHS } from '@/shared/lib/auth';
 import { http } from '@/shared/lib/http';
+import type { TLoginResponse } from '../types/session.types';
 import type {
   TActivateInput,
   TConfirmPasswordResetInput,
+  TLoginInput,
   TRegisterInput,
   TRequestPasswordResetInput,
   TResendCodeInput,
@@ -29,3 +32,9 @@ export const requestPasswordReset = (input: TRequestPasswordResetInput) =>
  */
 export const confirmPasswordReset = (input: TConfirmPasswordResetInput) =>
   http.post<void, TConfirmPasswordResetInput>('/auth/reset-password/confirm', input);
+
+/**
+ * 200 → tokens + the user profile (same shape as GET /users/me). Unknown identifier / login type mismatch / wrong password
+ * → 401 USER_INVALID_CREDENTIALS; DISTRIBUTOR not activated (password matched) → 403 USER_NOT_ACTIVE. Never refreshed on 401.
+ */
+export const login = (input: TLoginInput) => http.post<TLoginResponse, TLoginInput>(AUTH_PATHS.login, input);
