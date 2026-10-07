@@ -10,7 +10,7 @@ import { isAppError } from '@/shared/lib/http';
 import { toast } from '@/shared/lib/toast';
 import { cn } from '@/shared/lib/utils';
 import { TEXT } from '@/shared/theme';
-import { IDENTIFIER_LABELS, LOGIN_TYPE_OPTIONS, REGISTER_ERROR_FIELDS, ROLE_OPTIONS } from '../constants/auth.constants';
+import { IDENTIFIER_INPUT, IDENTIFIER_LABELS, LOGIN_TYPE_OPTIONS, REGISTER_ERROR_FIELDS, ROLE_OPTIONS } from '../constants/auth.constants';
 import { useRegister } from '../hooks/use-register';
 import { registerSchema } from '../schemas/register.schema';
 import type { TLoginType, TRegisterFormValues, TUserRole } from '../types/auth.types';
@@ -35,21 +35,6 @@ const ADDRESS_FIELDS = {
   ward: ['address.ward'],
   houseNumber: ['address.houseNumber'],
   location: ['address.lat', 'address.long'],
-} as const;
-
-const IDENTIFIER_INPUT = {
-  EMAIL: {
-    keyboardType: 'email-address',
-    autoComplete: 'email',
-    textContentType: 'emailAddress',
-    placeholder: 'ban@example.com',
-  },
-  PHONE: {
-    keyboardType: 'phone-pad',
-    autoComplete: 'tel',
-    textContentType: 'telephoneNumber',
-    placeholder: '0901 234 567',
-  },
 } as const;
 
 const isKnownRegisterError = (code: string): code is keyof typeof REGISTER_ERROR_FIELDS =>

@@ -13,6 +13,22 @@ export const IDENTIFIER_LABELS: Record<TLoginType, string> = {
   PHONE: 'Số điện thoại',
 };
 
+/** TextInput props of the identifier field per login type (keyboard, autofill, placeholder) — every auth form. */
+export const IDENTIFIER_INPUT = {
+  EMAIL: {
+    keyboardType: 'email-address',
+    autoComplete: 'email',
+    textContentType: 'emailAddress',
+    placeholder: 'ban@example.com',
+  },
+  PHONE: {
+    keyboardType: 'phone-pad',
+    autoComplete: 'tel',
+    textContentType: 'telephoneNumber',
+    placeholder: '0901 234 567',
+  },
+} as const;
+
 export const ROLE_OPTIONS = [
   { value: 'FARMER', label: 'Nông dân', description: 'Tài khoản dùng được ngay' },
   { value: 'DISTRIBUTOR', label: 'Nhà phân phối', description: 'Cần kích hoạt bằng mã gửi về email/số điện thoại' },
