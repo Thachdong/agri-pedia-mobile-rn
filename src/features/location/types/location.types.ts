@@ -6,3 +6,14 @@ export type TProvince = TLocationItem;
 export type TListProvincesResponse = TApiSchema<'ListProvincesResponse'>;
 export type TWard = TLocationItem;
 export type TListWardsResponse = TApiSchema<'ListWardsResponse'>;
+
+/** Address group value on a form — lat/long missing until a position is picked. */
+export type TAddressFieldsValue = {
+  province: string;
+  ward: string;
+  houseNumber: string;
+  lat?: number;
+  long?: number;
+};
+
+export type TAddressFieldsErrors = Partial<Record<'province' | 'ward' | 'houseNumber' | 'location', string>>;

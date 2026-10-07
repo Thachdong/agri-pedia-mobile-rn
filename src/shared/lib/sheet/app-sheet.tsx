@@ -27,6 +27,8 @@ export type TAppSheetProps = {
   onDismiss?: () => void;
   /** Accessibility label read when the sheet opens. */
   accessibilityLabel?: string;
+  /** false → dragging the content doesn't move the sheet (content with its own gestures, e.g. a map). Handle still drags. */
+  contentPanningEnabled?: boolean;
 };
 
 function renderBackdrop(props: BottomSheetBackdropProps) {
@@ -37,13 +39,21 @@ function renderBackdrop(props: BottomSheetBackdropProps) {
  * Bottom sheet modal (M1–M10). Height follows content, backdrop tap / swipe down closes it,
  * keyboard pushes it up. Feature sheets (`<name>-sheet.tsx`) render their content inside this.
  */
-export function AppSheet({ sheetRef, children, scrollable, onDismiss, accessibilityLabel }: TAppSheetProps) {
+export function AppSheet({
+  sheetRef,
+  children,
+  scrollable,
+  onDismiss,
+  accessibilityLabel,
+  contentPanningEnabled = true,
+}: TAppSheetProps) {
   const Container = scrollable ? BottomSheetScrollView : BottomSheetView;
   return (
     <BottomSheetModal
       ref={sheetRef}
       enableDynamicSizing
       enablePanDownToClose
+      enableContentPanningGesture={contentPanningEnabled}
       backdropComponent={renderBackdrop}
       keyboardBehavior="interactive"
       keyboardBlurBehavior="restore"
