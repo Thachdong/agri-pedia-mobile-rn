@@ -5,11 +5,11 @@ import { QueryProvider } from '@/shared/lib/query';
 
 /**
  * Fresh client per test: same staleTime as the app (makeQueryClient), but no retries, no garbage collection
- * while asserting and no global error toast.
+ * while asserting (Infinity also avoids the 5-min mutation gc timer that keeps jest alive) and no global error toast.
  */
 export function createTestQueryClient() {
   return new QueryClient({
-    defaultOptions: { queries: { staleTime: 60_000, retry: false, gcTime: Infinity }, mutations: { retry: false } },
+    defaultOptions: { queries: { staleTime: 60_000, retry: false, gcTime: Infinity }, mutations: { retry: false, gcTime: Infinity } },
   });
 }
 
