@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { TextInput } from 'react-native';
 import { ROUTES } from '@/shared/constants';
 import { AppError, getErrorMessage } from '@/shared/lib/http';
@@ -11,6 +11,7 @@ import { ResetPasswordForm } from './reset-password-form';
 const mockRouter = { replace: jest.fn(), push: jest.fn(), back: jest.fn() };
 jest.mock('expo-router', () => ({
   useRouter: () => mockRouter,
+  useFocusEffect: (effect: () => void) => jest.requireActual<typeof import('react')>('react').useEffect(effect, [effect]),
   Link: ({ children }: { children: unknown }) => children,
 }));
 jest.mock('../services/auth.service');
@@ -140,6 +141,25 @@ describe('ResetPasswordForm', () => {
       expect(screen.queryByRole('link', { name: 'Kích hoạt' })).toBeNull();
       await expectStayed();
     });
+  });
+
+  it('stays locked between success and the push: a second tap sends nothing, pushes once', async () => {
+    jest.mocked(requestPasswordReset).mockResolvedValue(undefined);
+    let finishSave: () => void = () => undefined;
+    const save = jest
+      .spyOn(authHandoffStore, 'save')
+      .mockReturnValue(new Promise<void>((resolve) => (finishSave = resolve)));
+    await renderAndType('nongdan@example.com');
+
+    await submit();
+    await waitFor(() => expect(save).toHaveBeenCalled());
+    expect(screen.getByRole('button', { name: 'RESET' })).toBeDisabled();
+    await submit();
+
+    await act(async () => finishSave());
+    await waitFor(() => expect(mockRouter.push).toHaveBeenCalledTimes(1));
+    expect(requestPasswordReset).toHaveBeenCalledTimes(1);
+    save.mockRestore();
   });
 
   it('button disabled while the request is pending', async () => {

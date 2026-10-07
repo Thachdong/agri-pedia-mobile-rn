@@ -1,5 +1,5 @@
-import { Link, useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { Link, useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { Keyboard, Pressable, Text, View } from 'react-native';
 import { Button } from '@/shared/components/atoms';
 import { FormInput, SegmentedControl } from '@/shared/components/molecules';
@@ -46,14 +46,20 @@ export function ResetPasswordForm({ className }: TResetPasswordFormProps) {
   const form = useAppForm<TResetPasswordFormValues>({ schema: resetPasswordSchema, defaultValues: DEFAULT_VALUES });
   const { errors } = form.formState;
 
+  // `isPending` turns false before the per-call onSuccess runs → keep RESET locked until the push, or a second tap
+  // while the handoff is saved sends again (409) and pushes change-password twice. Unlocked when the screen is back.
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  useFocusEffect(useCallback(() => setIsRedirecting(false), []));
+
   const loginType = form.watch('loginType');
-  const isSubmitting = mutation.isPending;
+  const isSubmitting = mutation.isPending || isRedirecting;
 
   useEffect(() => {
     form.setFocus('identifier');
   }, [form]);
 
   const goToChangePassword = async (values: TResetPasswordFormValues, at: string) => {
+    setIsRedirecting(true);
     await authHandoffStore.save({ ...values, at, purpose: PURPOSE });
     router.push(ROUTES.changePassword);
   };
