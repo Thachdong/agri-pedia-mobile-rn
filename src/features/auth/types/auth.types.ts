@@ -2,6 +2,8 @@ import type { TApiSchema } from '@/shared/lib/http';
 
 export type TRegisterInput = TApiSchema<'RegisterUserDto'>;
 export type TRegisterAddressInput = TApiSchema<'RegisterAddressDto'>;
+export type TActivateInput = TApiSchema<'ActivateAccountDto'>;
+export type TResendCodeInput = TApiSchema<'ResendCodeDto'>;
 export type TLoginType = TRegisterInput['loginType'];
 export type TUserRole = TRegisterInput['role'];
 export type { TBusinessType } from '@/shared/types';
@@ -10,7 +12,7 @@ export type { TBusinessType } from '@/shared/types';
 export type TRegisterFormValues = TRegisterInput & { confirmPassword: string };
 
 /** Code purpose: ACTIVATE_DISTRIBUTOR (sent at register) | RESET_PASSWORD. */
-export type TOtpPurpose = TApiSchema<'ResendCodeDto'>['purpose'];
+export type TOtpPurpose = TResendCodeInput['purpose'];
 
 /**
  * Data passed from register → activate and reset-password → change-password (shared decision 1), never via route params.
