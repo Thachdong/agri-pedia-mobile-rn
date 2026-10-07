@@ -85,3 +85,6 @@ export const CHANGE_PASSWORD_ERROR_FIELDS = {
 
 /** Errors of the change-password form shown with a link to /auth/reset-password (ask for a new code). */
 export const CHANGE_PASSWORD_RESET_LINK_ERRORS: readonly string[] = ['OTP_NOT_FOUND', 'OTP_ALREADY_CONSUMED'];
+
+/** Errors of POST /auth/login shown under the form with a "Kích hoạt" link (DISTRIBUTOR still PENDING). */
+export const LOGIN_ACTIVATE_LINK_ERRORS: readonly string[] = ['USER_NOT_ACTIVE'];
