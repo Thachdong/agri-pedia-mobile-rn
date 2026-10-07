@@ -1,0 +1,4 @@
+/* NativeWind entry — imported once in src/app/_layout.tsx. Token values live in tokens.ts (mapped in tailwind.config.ts). */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
