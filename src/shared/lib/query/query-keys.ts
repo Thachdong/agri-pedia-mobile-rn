@@ -17,4 +17,9 @@ export const queryKeys = {
     all: ['users'] as const,
     me: () => [...queryKeys.users.all, 'me'] as const,
   },
+  location: {
+    all: ['location'] as const,
+    provinces: () => [...queryKeys.location.all, 'provinces'] as const,
+    wards: (provinceCode: string) => [...queryKeys.location.all, 'wards', provinceCode] as const,
+  },
 } as const;
