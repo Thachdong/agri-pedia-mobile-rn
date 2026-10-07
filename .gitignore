@@ -30,7 +30,8 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files (.env.example is committed)
+.env
 .env*.local
 
 # typescript
@@ -41,3 +42,6 @@ example
 # generated native folders
 /ios
 /android
+
+# graphify knowledge graph (local, regenerate with `graphify update ui_ux_rn` from mobile/)
+graphify-out/
