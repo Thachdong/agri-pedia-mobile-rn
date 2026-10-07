@@ -1,11 +1,15 @@
-import { Text, View } from 'react-native';
-import { TEXT } from '@/shared/theme';
+import { AuthFooterLinks, AuthHeader, RegisterForm } from '@/features/auth';
+import { AuthLayout } from '@/shared/components/templates';
 
-// Placeholder so auth links / redirects have a typed target. Replaced by the register screen (auth-register CP8).
+/** /auth/register (public) — ui-ux.md §1, wireframe specs/ui-ux/image.png. Provinces load with AddressFields. */
 export default function RegisterScreen() {
   return (
-    <View className="flex-1 items-center justify-center bg-background">
-      <Text className={TEXT.titleLarge}>Đăng ký</Text>
-    </View>
+    <AuthLayout
+      header={<AuthHeader />}
+      title="Register"
+      footer={<AuthFooterLinks links={['login', 'activate', 'resetPassword']} />}
+    >
+      <RegisterForm />
+    </AuthLayout>
   );
 }
