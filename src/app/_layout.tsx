@@ -1,6 +1,21 @@
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { AppProviders } from '@/shared/providers';
 
-// Providers (query, sheet, toast, session) are added in the foundation plan, CP2 + CP5.
+SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  // Hides the splash once the first frame is ready. Session restore (foundation CP5) and fonts (CP3) will gate this.
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
+
+  return (
+    <AppProviders>
+      <StatusBar style="dark" />
+      <Stack screenOptions={{ headerShown: false }} />
+    </AppProviders>
+  );
 }
