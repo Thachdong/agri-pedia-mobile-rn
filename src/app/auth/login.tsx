@@ -1,11 +1,18 @@
-import { Text, View } from 'react-native';
-import { TEXT } from '@/shared/theme';
+import { AuthFooterLinks, AuthHeader, LoginForm } from '@/features/auth';
+import { AuthLayout } from '@/shared/components/templates';
 
-// Placeholder so the (private) guard has a typed target. Replaced by the auth-login feature.
+/**
+ * /auth/login (public, guest-only) — ui-ux.md §3, wireframe specs/ui-ux/image-2.png. Pre-fill lives in LoginForm;
+ * the redirect after login (`from` or role target) lives in the auth layout guard.
+ */
 export default function LoginScreen() {
   return (
-    <View className="flex-1 items-center justify-center bg-background">
-      <Text className={TEXT.titleLarge}>Đăng nhập</Text>
-    </View>
+    <AuthLayout
+      header={<AuthHeader />}
+      title="Login"
+      footer={<AuthFooterLinks links={['register', 'activate', 'resetPassword']} />}
+    >
+      <LoginForm />
+    </AuthLayout>
   );
 }
