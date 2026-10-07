@@ -1,4 +1,7 @@
 // Public API of the `auth` feature. Other features and src/app import only this file.
+export { AuthFooterLinks, type TAuthFooterLinkKey } from './components/auth-footer-links';
+export { AuthHeader } from './components/auth-header';
+export { RegisterForm } from './components/register-form';
 export { SessionListener } from './components/session-listener';
 export { currentUserQuery } from './hooks/session.queries';
 export { useLogout } from './hooks/use-logout';
