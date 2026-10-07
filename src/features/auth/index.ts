@@ -7,6 +7,7 @@ export { ResetPasswordForm } from './components/reset-password-form';
 export { SessionListener } from './components/session-listener';
 export { currentUserQuery } from './hooks/session.queries';
 export { useActivate } from './hooks/use-activate';
+export { useConfirmPasswordReset } from './hooks/use-confirm-password-reset';
 export { useLogout } from './hooks/use-logout';
 export { useRegister } from './hooks/use-register';
 export { useRequestPasswordReset } from './hooks/use-request-password-reset';
@@ -18,6 +19,7 @@ export type { TCurrentUser, TLoginResponse, TSession, TSessionStatus } from './t
 export type {
   TActivateInput,
   TBusinessType,
+  TConfirmPasswordResetInput,
   TLoginType,
   TOtpPurpose,
   TRegisterInput,
