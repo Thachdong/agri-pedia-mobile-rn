@@ -51,7 +51,7 @@ ui_ux_rn/
     │   │   ├── validation/          # v, schema, rules (joi)
     │   │   ├── form/                # useAppForm, FormField, applyServerErrors (react-hook-form)
     │   │   └── utils.ts             # cn
-    │   ├── theme/                   # global.css (tokens), colors.ts (values for non-className props), typography.ts
+    │   ├── theme/                   # tokens.ts (single source), colors.ts (values for non-className props), typography.ts (TEXT), global.css (NativeWind entry)
     │   ├── components/
     │   │   ├── atoms/               # button, text, input, avatar, star-rating ... + index.ts
     │   │   ├── molecules/           # form-input, otp-code-input, countdown-resend ... + index.ts
@@ -81,9 +81,11 @@ Tests colocated: `<file>.test.ts(x)` next to the unit. `ios/` and `android/` are
 - `src/shared` → never `@/features/*` (type-only allowed in `query-keys.ts`). `src/features/<a>` → other features only via `@/features/<b>`. `src/app` → anything public.
 - Inside a feature: `components → hooks → services → @/shared/lib/http`; `schemas/types/constants/utils` are leaves.
 - Atomic direction: atoms ↛ molecules/organisms/templates; molecules ↛ organisms/templates; only organisms call data hooks or `useAppForm`.
-- Wrapped packages only in their folder under `src/shared/lib/<concern>/`: `@tanstack/react-query` + `@react-native-community/netinfo` (query; also `src/test-utils/`), `joi`, `react-hook-form`, `@hookform/resolvers`, `socket.io-client`, `expo-secure-store`, `@react-native-async-storage/async-storage`, `expo-location`, `expo-image-picker`, `react-native-maps`, `@gorhom/bottom-sheet`, `sonner-native`.
+- Wrapped packages only in their folder under `src/shared/lib/<concern>/`: `@tanstack/react-query` + `@react-native-community/netinfo` (query), `joi`, `react-hook-form`, `@hookform/resolvers`, `socket.io-client`, `expo-secure-store`, `@react-native-async-storage/async-storage`, `expo-location`, `expo-image-picker`, `react-native-maps`, `@gorhom/bottom-sheet`, `sonner-native`. Tests (`src/test-utils/`, `*.test.ts(x)`) may import them directly.
 - `process.env` only in `src/shared/config/`. `fetch(` only in `src/shared/lib/http/` and `src/shared/lib/auth/`.
-- No hex/rgb literals, raw Tailwind palette classes (`bg-green-700`) or arbitrary colors (`bg-[#..]`) outside `src/shared/theme/`. Numeric `fontSize` in `style` forbidden — use text classes.
+- No hex/rgb literals, raw Tailwind palette classes (`bg-green-700`) or arbitrary colors (`bg-[#..]`) outside `src/shared/theme/`. Numeric `fontSize` in `style` forbidden — use text classes / `TEXT` roles.
+- Default exports only in `src/app/**` (route files); named exports everywhere else.
+- Enforced by `eslint.config.js` (`npx expo lint`); tsconfig strict + `noUncheckedIndexedAccess`.
 
 ## Decisions — RN implementation (rules in `../CLAUDE.md`)
 1. **Handoff**: `keyValueStorage` + `TAuthHandoff` in `features/auth/utils/auth-handoff.store.ts`. Never via route params.

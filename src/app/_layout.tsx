@@ -1,18 +1,34 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import '@/shared/theme/global.css';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
+import { SessionListener } from '@/features/auth';
+import { tokenStore } from '@/shared/lib/auth';
+import { AppProviders } from '@/shared/providers';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
+  // Splash stays until the stored session is read, so the first screen already knows guest vs logged in.
+  // System font, no font loading (same as Flutter).
+  const [ready, setReady] = useState(tokenStore.isLoaded());
+
+  useEffect(() => {
+    tokenStore.load().finally(() => {
+      setReady(true);
+      SplashScreen.hideAsync();
+    });
+  }, []);
+
+  if (!ready) return null;
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <AppProviders>
+      <SessionListener />
+      <StatusBar style="dark" />
+      <Stack screenOptions={{ headerShown: false }} />
+    </AppProviders>
   );
 }
