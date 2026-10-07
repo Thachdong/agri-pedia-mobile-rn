@@ -26,3 +26,19 @@ export const REGISTER_ERROR_FIELDS = {
   USER_BUSINESS_TYPE_REQUIRED: { field: 'bussinessType', message: 'Vui lòng chọn loại hình kinh doanh' },
   USER_BUSINESS_TYPE_NOT_ALLOWED: { field: 'bussinessType', message: 'Nông dân không chọn loại hình kinh doanh' },
 } as const;
+
+/** Matches the server OTP_LENGTH (default 6); the API accepts 4..10 digits. */
+export const OTP_CODE_LENGTH = 6;
+
+/** Resend is locked for 3 min after a code is sent (ui-ux.md §2) — counted from the handoff `at`. */
+export const RESEND_CODE_COOLDOWN_MS = 3 * 60 * 1000;
+
+/**
+ * Domain errors of POST /auth/activate that belong to a field (same text as web). Others (OTP_ALREADY_CONSUMED,
+ * OTP_BLOCKED + blockUntil, ...) → under the form via applyServerErrors / getErrorMessage.
+ */
+export const ACTIVATE_ERROR_FIELDS = {
+  OTP_INVALID_CODE: { field: 'code', message: 'Mã kích hoạt không đúng' },
+  OTP_EXPIRED: { field: 'code', message: 'Mã đã hết hạn, bấm Gửi lại để nhận mã mới' },
+  OTP_NOT_FOUND: { field: 'identifier', message: 'Không tìm thấy mã kích hoạt cho tài khoản này' },
+} as const;

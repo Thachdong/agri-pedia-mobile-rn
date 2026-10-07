@@ -11,6 +11,9 @@ export type { TBusinessType } from '@/shared/types';
 /** Register form values — adds `confirmPassword` (client only, never sent). */
 export type TRegisterFormValues = TRegisterInput & { confirmPassword: string };
 
+/** Activate form values — adds `loginType` (client only: picks the identifier rule + keyboard, never sent). */
+export type TActivateFormValues = TActivateInput & { loginType: TLoginType };
+
 /** Code purpose: ACTIVATE_DISTRIBUTOR (sent at register) | RESET_PASSWORD. */
 export type TOtpPurpose = TResendCodeInput['purpose'];
 
