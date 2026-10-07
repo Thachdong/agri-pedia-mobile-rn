@@ -17,6 +17,7 @@ export { useResendCode } from './hooks/use-resend-code';
 export { usePrivateGuard } from './hooks/use-private-guard';
 export { useSession } from './hooks/use-session';
 export { useSignIn } from './hooks/use-sign-in';
+export { getPostLoginPath } from './utils/login.util';
 export type { TCurrentUser, TLoginResponse, TSession, TSessionStatus } from './types/session.types';
 export type {
   TActivateInput,

@@ -26,6 +26,7 @@ import { activateSchema } from '../schemas/activate.schema';
 import { toIdentifier } from '../schemas/identifier.schema';
 import type { TActivateFormValues, TLoginType } from '../types/auth.types';
 import { authHandoffStore } from '../utils/auth-handoff.store';
+import { loginHandoffStore } from '../utils/login-handoff.store';
 
 const PURPOSE = 'ACTIVATE_DISTRIBUTOR';
 
@@ -119,13 +120,13 @@ export function ActivateForm({ className }: TActivateFormProps) {
     );
   };
 
-  const onSubmit = form.handleSubmit(({ identifier, code }) => {
+  const onSubmit = form.handleSubmit(({ loginType, identifier, code }) => {
     Keyboard.dismiss();
     activateMutation.mutate(
       { identifier, code },
       {
         onSuccess: async () => {
-          await authHandoffStore.clear(PURPOSE);
+          await Promise.all([authHandoffStore.clear(PURPOSE), loginHandoffStore.save({ loginType, identifier })]);
           toast.success('Kích hoạt tài khoản thành công. Vui lòng đăng nhập.');
           router.replace(ROUTES.login);
         },

@@ -26,6 +26,7 @@ import { changePasswordSchema } from '../schemas/change-password.schema';
 import { toIdentifier } from '../schemas/identifier.schema';
 import type { TChangePasswordFormValues, TLoginType } from '../types/auth.types';
 import { authHandoffStore } from '../utils/auth-handoff.store';
+import { loginHandoffStore } from '../utils/login-handoff.store';
 import { toConfirmPasswordResetInput } from '../utils/change-password.util';
 
 const PURPOSE = 'RESET_PASSWORD';
@@ -138,7 +139,10 @@ export function ChangePasswordForm({ className }: TChangePasswordFormProps) {
       onSuccess: async () => {
         setIsRedirecting(true);
         countdown.stop();
-        await authHandoffStore.clear(PURPOSE);
+        await Promise.all([
+          authHandoffStore.clear(PURPOSE),
+          loginHandoffStore.save({ loginType: values.loginType, identifier: values.identifier }),
+        ]);
         toast.success('Đổi mật khẩu thành công. Vui lòng đăng nhập.');
         // Left the screen (back) while the handoff was being cleared → don't pull the user to /auth/login.
         if (navigation.isFocused()) router.replace(ROUTES.login);

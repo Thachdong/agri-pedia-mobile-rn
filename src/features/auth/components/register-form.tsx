@@ -15,6 +15,7 @@ import { useRegister } from '../hooks/use-register';
 import { registerSchema } from '../schemas/register.schema';
 import type { TLoginType, TRegisterFormValues, TUserRole } from '../types/auth.types';
 import { authHandoffStore } from '../utils/auth-handoff.store';
+import { loginHandoffStore } from '../utils/login-handoff.store';
 import { toRegisterInput } from '../utils/register.util';
 
 const DEFAULT_VALUES = {
@@ -102,6 +103,7 @@ export function RegisterForm({ className }: TRegisterFormProps) {
           });
           router.replace(ROUTES.activate);
         } else {
+          await loginHandoffStore.save(input);
           toast.success('Đăng ký thành công. Vui lòng đăng nhập.');
           router.replace(ROUTES.login);
         }

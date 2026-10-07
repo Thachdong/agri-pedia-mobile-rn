@@ -23,6 +23,9 @@ export type TResetPasswordFormValues = TRequestPasswordResetInput;
 /** Change-password form values — adds `loginType` (picks the identifier rule) and `confirmPassword`; both client only. */
 export type TChangePasswordFormValues = TConfirmPasswordResetInput & { loginType: TLoginType; confirmPassword: string };
 
+/** Login form values — same shape as the request (loginType is sent: the server matches it). */
+export type TLoginFormValues = TLoginInput;
+
 /** Code purpose: ACTIVATE_DISTRIBUTOR (sent at register) | RESET_PASSWORD. */
 export type TOtpPurpose = TResendCodeInput['purpose'];
 
@@ -36,3 +39,6 @@ export type TAuthHandoff = {
   at: string;
   purpose: TOtpPurpose;
 };
+
+/** Pre-fill of the login form, saved by the flows that end on /auth/login (register FARMER, activate, change-password). */
+export type TLoginHandoff = Pick<TAuthHandoff, 'loginType' | 'identifier'>;
