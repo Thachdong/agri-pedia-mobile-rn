@@ -1,11 +1,15 @@
-import { Text, View } from 'react-native';
-import { TEXT } from '@/shared/theme';
+import { AuthFooterLinks, AuthHeader, ChangePasswordForm } from '@/features/auth';
+import { AuthLayout } from '@/shared/components/templates';
 
-// Placeholder so auth links / redirects have a typed target. Replaced by the auth-change-password feature.
+/** /auth/change-password (public) — ui-ux.md §5, wireframe specs/ui-ux/image-7.png. Handoff init lives in ChangePasswordForm. */
 export default function ChangePasswordScreen() {
   return (
-    <View className="flex-1 items-center justify-center bg-background">
-      <Text className={TEXT.titleLarge}>Đổi mật khẩu</Text>
-    </View>
+    <AuthLayout
+      header={<AuthHeader />}
+      title="Change Password"
+      footer={<AuthFooterLinks links={['register', 'login']} />}
+    >
+      <ChangePasswordForm />
+    </AuthLayout>
   );
 }

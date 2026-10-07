@@ -2,6 +2,7 @@
 export { ActivateForm } from './components/activate-form';
 export { AuthFooterLinks, type TAuthFooterLinkKey } from './components/auth-footer-links';
 export { AuthHeader } from './components/auth-header';
+export { ChangePasswordForm } from './components/change-password-form';
 export { RegisterForm } from './components/register-form';
 export { ResetPasswordForm } from './components/reset-password-form';
 export { SessionListener } from './components/session-listener';
