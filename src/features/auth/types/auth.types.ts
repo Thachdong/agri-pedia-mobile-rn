@@ -4,6 +4,7 @@ export type TRegisterInput = TApiSchema<'RegisterUserDto'>;
 export type TRegisterAddressInput = TApiSchema<'RegisterAddressDto'>;
 export type TActivateInput = TApiSchema<'ActivateAccountDto'>;
 export type TResendCodeInput = TApiSchema<'ResendCodeDto'>;
+export type TRequestPasswordResetInput = TApiSchema<'RequestPasswordResetDto'>;
 export type TLoginType = TRegisterInput['loginType'];
 export type TUserRole = TRegisterInput['role'];
 export type { TBusinessType } from '@/shared/types';

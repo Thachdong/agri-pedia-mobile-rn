@@ -8,6 +8,7 @@ export { currentUserQuery } from './hooks/session.queries';
 export { useActivate } from './hooks/use-activate';
 export { useLogout } from './hooks/use-logout';
 export { useRegister } from './hooks/use-register';
+export { useRequestPasswordReset } from './hooks/use-request-password-reset';
 export { useResendCode } from './hooks/use-resend-code';
 export { usePrivateGuard } from './hooks/use-private-guard';
 export { useSession } from './hooks/use-session';
@@ -19,6 +20,7 @@ export type {
   TLoginType,
   TOtpPurpose,
   TRegisterInput,
+  TRequestPasswordResetInput,
   TResendCodeInput,
   TUserRole,
 } from './types/auth.types';
