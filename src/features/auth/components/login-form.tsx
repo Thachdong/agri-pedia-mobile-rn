@@ -50,6 +50,10 @@ export function LoginForm({ className }: TLoginFormProps) {
 
   useEffect(() => {
     if (handoff.status !== 'ready') return;
+    // Storage answered after the user started typing / switched tab → keep their input, no focus jump.
+    const { loginType: currentType, identifier, password } = form.getValues();
+    const isTouched = currentType !== DEFAULT_VALUES.loginType || identifier !== '' || password !== '';
+    if (isTouched) return;
     if (!handoff.handoff) {
       form.setFocus('identifier');
       return;

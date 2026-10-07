@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { TextInput } from 'react-native';
 import { tokenStore } from '@/shared/lib/auth';
 import { AppError } from '@/shared/lib/http';
@@ -27,6 +27,8 @@ async function renderAndFill(identifier: string, password = 'secret', loginType:
 describe('LoginForm', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
+    // Spies (e.g. a delayed pre-fill read) never leak into the next case, even when it fails.
+    jest.restoreAllMocks();
     await AsyncStorage.clear();
     await tokenStore.clear();
   });
@@ -56,6 +58,21 @@ describe('LoginForm', () => {
       const lastFocused = focus.mock.contexts.at(-1) as { props?: { textContentType?: string } } | undefined;
       expect(lastFocused?.props?.textContentType).toBe('password');
       focus.mockRestore();
+    });
+
+    it('pre-fill arriving after the user typed → typed input kept', async () => {
+      let resolveRead: (value: Awaited<ReturnType<typeof loginHandoffStore.read>>) => void = () => undefined;
+      const read = jest
+        .spyOn(loginHandoffStore, 'read')
+        .mockReturnValue(new Promise((resolve) => (resolveRead = resolve)));
+      await renderWithProviders(<LoginForm />);
+      await fireEvent.changeText(screen.getByLabelText('Email'), 'typed@example.com');
+
+      await act(async () => resolveRead({ loginType: 'PHONE', identifier: '0901234567' }));
+
+      expect(screen.getByRole('tab', { name: 'EMAIL' })).toBeSelected();
+      expect(screen.getByLabelText('Email')).toHaveDisplayValue('typed@example.com');
+      expect(read).toHaveBeenCalled();
     });
   });
 
