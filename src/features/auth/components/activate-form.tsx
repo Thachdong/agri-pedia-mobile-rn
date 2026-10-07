@@ -22,7 +22,8 @@ import {
 import { useActivate } from '../hooks/use-activate';
 import { useAuthHandoff } from '../hooks/use-auth-handoff';
 import { useResendCode } from '../hooks/use-resend-code';
-import { activateSchema, toIdentifier } from '../schemas/activate.schema';
+import { activateSchema } from '../schemas/activate.schema';
+import { toIdentifier } from '../schemas/identifier.schema';
 import type { TActivateFormValues, TLoginType } from '../types/auth.types';
 import { authHandoffStore } from '../utils/auth-handoff.store';
 

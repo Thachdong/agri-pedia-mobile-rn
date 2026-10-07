@@ -61,3 +61,14 @@ export const ACTIVATE_ERROR_FIELDS = {
 
 /** Errors of POST /auth/activate shown under the form with a "Đăng nhập" link (the account is already active). */
 export const ACTIVATE_LOGIN_LINK_ERRORS: readonly string[] = ['OTP_ALREADY_CONSUMED'];
+
+/**
+ * Domain errors of POST /auth/reset-password that belong to a field (same text as web). OTP_ALREADY_REQUESTED is not an
+ * error (the form goes on to change-password, see getIssuedAt). Others (OTP_BLOCKED + blockUntil, ...) → under the form.
+ */
+export const RESET_PASSWORD_ERROR_FIELDS = {
+  OTP_ACCOUNT_NOT_FOUND: { field: 'identifier', message: 'Không tìm thấy tài khoản với email/số điện thoại này' },
+} as const;
+
+/** Errors of POST /auth/reset-password shown under the form with a "Kích hoạt" link (account still PENDING). */
+export const RESET_PASSWORD_ACTIVATE_LINK_ERRORS: readonly string[] = ['OTP_ACCOUNT_NOT_ACTIVE'];
