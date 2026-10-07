@@ -9,8 +9,10 @@ import { authHandoffStore } from '../utils/auth-handoff.store';
 import { ChangePasswordForm } from './change-password-form';
 
 const mockRouter = { replace: jest.fn(), push: jest.fn(), back: jest.fn() };
+const mockNavigation = { isFocused: jest.fn(() => true) };
 jest.mock('expo-router', () => ({
   useRouter: () => mockRouter,
+  useNavigation: () => mockNavigation,
   Link: ({ children }: { children: unknown }) => children,
 }));
 jest.mock('@/shared/lib/toast', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
@@ -44,6 +46,7 @@ async function fillPasswordAndCode(code = '123456') {
 describe('ChangePasswordForm', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
+    mockNavigation.isFocused.mockReturnValue(true);
     await AsyncStorage.clear();
   });
 
@@ -160,6 +163,25 @@ describe('ChangePasswordForm', () => {
 
       await waitFor(() => expect(mockRouter.replace).toHaveBeenCalledTimes(1));
       expect(confirmPasswordReset).toHaveBeenCalledTimes(1);
+      clear.mockRestore();
+    });
+
+    it('left the screen while clearing the handoff → toast, no redirect', async () => {
+      jest.mocked(confirmPasswordReset).mockResolvedValue(undefined);
+      let release: () => void = () => undefined;
+      const clear = jest
+        .spyOn(authHandoffStore, 'clear')
+        .mockImplementation(() => new Promise<void>((r) => (release = r)));
+      await renderWithHandoff(handoff());
+      await fillPasswordAndCode();
+
+      await fireEvent.press(screen.getByRole('button', { name: SUBMIT }));
+      await waitFor(() => expect(clear).toHaveBeenCalled());
+      mockNavigation.isFocused.mockReturnValue(false);
+      await act(async () => release());
+
+      expect(toast.success).toHaveBeenCalled();
+      expect(mockRouter.replace).not.toHaveBeenCalled();
       clear.mockRestore();
     });
 

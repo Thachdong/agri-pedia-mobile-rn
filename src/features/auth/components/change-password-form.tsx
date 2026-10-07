@@ -1,4 +1,4 @@
-import { Link, useRouter } from 'expo-router';
+import { Link, useNavigation, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Keyboard, Pressable, Text, View } from 'react-native';
 import { Button } from '@/shared/components/atoms';
@@ -55,6 +55,7 @@ export function ChangePasswordForm({ className }: TChangePasswordFormProps) {
   // react-hook-form's `watch` / `formState` mutate one stable object — opt out of React Compiler memoization here.
   'use no memo';
   const router = useRouter();
+  const navigation = useNavigation();
   const handoff = useAuthHandoff(PURPOSE);
   const countdown = useCountdown({ durationMs: RESEND_CODE_COOLDOWN_MS, from: handoff.handoff?.at });
   const confirmMutation = useConfirmPasswordReset();
@@ -75,7 +76,8 @@ export function ChangePasswordForm({ className }: TChangePasswordFormProps) {
     }
     form.reset({ ...DEFAULT_VALUES, loginType: handoff.handoff.loginType, identifier: handoff.handoff.identifier });
     // Wait for the reset to reach the inputs before focusing the password.
-    requestAnimationFrame(() => form.setFocus('newPassword'));
+    const frame = requestAnimationFrame(() => form.setFocus('newPassword'));
+    return () => cancelAnimationFrame(frame);
   }, [form, handoff]);
 
   const showError = (error: unknown) => {
@@ -138,7 +140,8 @@ export function ChangePasswordForm({ className }: TChangePasswordFormProps) {
         countdown.stop();
         await authHandoffStore.clear(PURPOSE);
         toast.success('Đổi mật khẩu thành công. Vui lòng đăng nhập.');
-        router.replace(ROUTES.login);
+        // Left the screen (back) while the handoff was being cleared → don't pull the user to /auth/login.
+        if (navigation.isFocused()) router.replace(ROUTES.login);
       },
       onError: showError,
     });
