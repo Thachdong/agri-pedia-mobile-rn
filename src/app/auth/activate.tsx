@@ -1,11 +1,15 @@
-import { Text, View } from 'react-native';
-import { TEXT } from '@/shared/theme';
+import { ActivateForm, AuthFooterLinks, AuthHeader } from '@/features/auth';
+import { AuthLayout } from '@/shared/components/templates';
 
-// Placeholder so auth links / redirects have a typed target. Replaced by the auth-activate feature.
+/** /auth/activate (public) — ui-ux.md §2, wireframe specs/ui-ux/image-1.png. Handoff init lives in ActivateForm. */
 export default function ActivateScreen() {
   return (
-    <View className="flex-1 items-center justify-center bg-background">
-      <Text className={TEXT.titleLarge}>Kích hoạt tài khoản</Text>
-    </View>
+    <AuthLayout
+      header={<AuthHeader />}
+      title="Activate Account"
+      footer={<AuthFooterLinks links={['register', 'login', 'resetPassword']} />}
+    >
+      <ActivateForm />
+    </AuthLayout>
   );
 }
