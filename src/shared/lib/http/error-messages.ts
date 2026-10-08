@@ -71,4 +71,9 @@ const MESSAGES: Record<string, string> = {
   CHAT_INVALID_CURSOR: 'Không tải được thêm tin nhắn. Vui lòng tải lại.',
   CHAT_ROOM_NOT_FOUND: 'Không tìm thấy cuộc trò chuyện.',
   CHAT_NOT_ROOM_MEMBER: 'Bạn không thuộc cuộc trò chuyện này.',
+  CHAT_ROOM_OR_RECEIVER_REQUIRED: 'Không xác định được người nhận tin nhắn.',
+  CHAT_SENDER_NOT_ALLOWED: 'Tài khoản của bạn không thể gửi tin nhắn.',
+  CHAT_RECEIVER_NOT_FOUND: 'Không tìm thấy người nhận.',
+  CHAT_INVALID_RECEIVER: 'Không thể gửi tin nhắn cho người dùng này.',
+  CHAT_INVALID_MESSAGE: 'Tin nhắn phải từ 1 đến 2000 ký tự.',
 };
