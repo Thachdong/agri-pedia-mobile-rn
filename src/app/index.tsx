@@ -1,20 +1,35 @@
+import { Redirect } from 'expo-router';
+import { useSession } from '@/features/auth';
+import {
+  DistributorExplorerFilter,
+  DistributorExplorerList,
+  DistributorExplorerMap,
+  DistributorExplorerProvider,
+} from '@/features/distributor';
 import { AccountHeaderActions } from '@/features/user';
-import { EmptyState } from '@/shared/components/molecules';
 import { SiteHeader } from '@/shared/components/organisms';
 import { MapListLayout } from '@/shared/components/templates';
-import { AppMap } from '@/shared/lib/map';
+import { ROUTES } from '@/shared/constants';
 
 /**
- * Home "/" (ui-ux.md §6, image-4) — public. Layout only: (1)–(4) header by session, (5) map centered on VN,
- * (6) filter and (7) distributor list are placeholders until GET /distributors/nearby is wired.
+ * Home "/" (ui-ux.md §6, image-4) — public. (1)–(4) header by session, (5) map + (7) list from one nearby query keyed
+ * by the (6) filter. A logged-in DISTRIBUTOR has no use for the search → own profile (same as web).
  */
 export default function HomeScreen() {
+  const session = useSession();
+
+  if (session.status === 'authenticated' && session.user.role === 'DISTRIBUTOR') {
+    return <Redirect href={ROUTES.profile(session.user.id)} />;
+  }
+
   return (
-    <MapListLayout
-      header={<SiteHeader actions={<AccountHeaderActions />} />}
-      map={<AppMap accessibilityLabel="Bản đồ nhà phân phối" className="flex-1" />}
-      filters={<EmptyState icon="options-outline" title="Tìm kiếm và bộ lọc" className="py-0" />}
-      list={<EmptyState icon="storefront-outline" title="Chưa có nhà phân phối" />}
-    />
+    <DistributorExplorerProvider>
+      <MapListLayout
+        header={<SiteHeader actions={<AccountHeaderActions />} />}
+        map={<DistributorExplorerMap className="flex-1" />}
+        filters={<DistributorExplorerFilter />}
+        list={<DistributorExplorerList />}
+      />
+    </DistributorExplorerProvider>
   );
 }
