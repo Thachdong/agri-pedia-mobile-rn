@@ -45,6 +45,8 @@ const MESSAGES: Record<string, string> = {
   // Session
   AUTH_INVALID_ACCESS_TOKEN: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
   USER_INVALID_REFRESH_TOKEN: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+  // Realtime (socket ack)
+  REALTIME_VALIDATION_FAILED: 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.',
   // Login
   USER_INVALID_CREDENTIALS: 'Email/số điện thoại hoặc mật khẩu không đúng.',
   USER_NOT_ACTIVE: 'Tài khoản chưa được kích hoạt.',

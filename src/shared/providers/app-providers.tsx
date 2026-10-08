@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { getErrorMessage } from '@/shared/lib/http';
 import { QueryProvider, setQueryErrorNotifier } from '@/shared/lib/query';
+import { RealtimeProvider } from '@/shared/lib/realtime';
 import { AppSheetProvider } from '@/shared/lib/sheet';
 import { toast, ToastHost } from '@/shared/lib/toast';
 
@@ -19,10 +20,12 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <QueryProvider>
-          <AppSheetProvider>
-            {children}
-            <ToastHost />
-          </AppSheetProvider>
+          <RealtimeProvider>
+            <AppSheetProvider>
+              {children}
+              <ToastHost />
+            </AppSheetProvider>
+          </RealtimeProvider>
         </QueryProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
