@@ -1,3 +1,5 @@
+import type { TNearbyDistributorsParams } from '@/features/distributor';
+
 /**
  * CENTRAL registry of query keys — the only place keys are written (same names as the web client).
  * One namespace per feature, factory pattern, `as const`:
@@ -21,5 +23,9 @@ export const queryKeys = {
     all: ['location'] as const,
     provinces: () => [...queryKeys.location.all, 'provinces'] as const,
     wards: (provinceCode: string) => [...queryKeys.location.all, 'wards', provinceCode] as const,
+  },
+  distributors: {
+    all: ['distributors'] as const,
+    nearby: (params: TNearbyDistributorsParams) => [...queryKeys.distributors.all, 'nearby', params] as const,
   },
 } as const;
