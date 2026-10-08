@@ -4,6 +4,7 @@ import { View, type ViewProps } from 'react-native';
 /** jest mock of react-native-maps: MapView keeps its props, so tests fire `press` with `{ nativeEvent: { coordinate } }`. */
 class MapView extends Component<ViewProps> {
   animateToRegion = jest.fn();
+  fitToCoordinates = jest.fn();
 
   override render() {
     return <View testID="map-view" {...this.props} />;

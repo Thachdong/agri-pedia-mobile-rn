@@ -24,6 +24,8 @@ export type TMapRegion = {
 export type TAppMapHandle = {
   /** Moves the camera to `point`; `latitudeDelta` defaults to street level. */
   animateTo: (point: TGeoPoint, latitudeDelta?: number) => void;
+  /** Frames every point (one point → city level, none → no move). */
+  fitTo: (points: readonly TGeoPoint[]) => void;
 };
 
 export type TAppMapProps = {
@@ -33,6 +35,12 @@ export type TAppMapProps = {
   /** Initial latitude span. Default: whole country. */
   initialLatitudeDelta?: number;
   markers?: readonly TMapMarker[];
+  /** Marker drawn in the highlight color (e.g. the item selected in a list). */
+  selectedId?: string | null;
+  /** Viewer's own position, drawn as a separate, non-interactive marker. */
+  userLocation?: TGeoPoint | null;
+  /** Callout of the viewer marker. Default "Bạn ở đây". */
+  userLabel?: string;
   onPress?: (point: TGeoPoint) => void;
   onMarkerPress?: (id: string) => void;
   onMarkerDragEnd?: (id: string, point: TGeoPoint) => void;
@@ -43,6 +51,12 @@ export type TAppMapProps = {
 
 type TLatLng = { latitude: number; longitude: number };
 
+const FIT_EDGE_PADDING = { top: 48, right: 48, bottom: 48, left: 48 };
+
+/** Identifier of the viewer marker — never a distributor id. */
+const USER_MARKER_ID = '__user__';
+
+const toLatLng = ({ lat, long }: TGeoPoint): TLatLng => ({ latitude: lat, longitude: long });
 const toPoint = ({ latitude, longitude }: TLatLng): TGeoPoint => ({ lat: latitude, long: longitude });
 const toRegion = (point: TGeoPoint, latitudeDelta: number): Region => ({
   latitude: point.lat,
@@ -61,6 +75,9 @@ export function AppMap({
   initialCenter = VN_CENTER,
   initialLatitudeDelta = MAP_ZOOM.country,
   markers = [],
+  selectedId = null,
+  userLocation = null,
+  userLabel = 'Bạn ở đây',
   onPress,
   onMarkerPress,
   onMarkerDragEnd,
@@ -76,6 +93,15 @@ export function AppMap({
     () => ({
       animateTo: (point, latitudeDelta = MAP_ZOOM.street) => {
         mapRef.current?.animateToRegion(toRegion(point, latitudeDelta));
+      },
+      fitTo: (points) => {
+        const [first] = points;
+        if (!first) return;
+        if (points.length === 1) {
+          mapRef.current?.animateToRegion(toRegion(first, MAP_ZOOM.city));
+          return;
+        }
+        mapRef.current?.fitToCoordinates(points.map(toLatLng), { edgePadding: FIT_EDGE_PADDING, animated: true });
       },
     }),
     [],
@@ -105,18 +131,34 @@ export function AppMap({
         }
       >
         <UrlTile urlTemplate={env.mapTileUrl} maximumZ={19} flipY={false} shouldReplaceMapContent />
-        {markers.map((marker) => (
-          <Marker
-            key={marker.id}
-            identifier={marker.id}
-            coordinate={{ latitude: marker.point.lat, longitude: marker.point.long }}
-            title={marker.title}
-            pinColor={colors.primary}
+        {markers.map((marker) => {
+          const selected = marker.id === selectedId;
+          return (
+            <Marker
+              // Android ignores pinColor updates on a mounted marker → remount when the selection changes.
+              key={`${marker.id}:${selected ? 'selected' : 'idle'}`}
+              identifier={marker.id}
+              coordinate={toLatLng(marker.point)}
+              title={marker.title}
+              pinColor={selected ? colors.highlight : colors.primary}
+              zIndex={selected ? 1 : 0}
             draggable={marker.draggable}
             onPress={onMarkerPress ? () => onMarkerPress(marker.id) : undefined}
-            onDragEnd={onMarkerDragEnd ? (e) => onMarkerDragEnd(marker.id, toPoint(e.nativeEvent.coordinate)) : undefined}
+              onDragEnd={
+                onMarkerDragEnd ? (e) => onMarkerDragEnd(marker.id, toPoint(e.nativeEvent.coordinate)) : undefined
+              }
+            />
+          );
+        })}
+        {userLocation && (
+          <Marker
+            identifier={USER_MARKER_ID}
+            coordinate={toLatLng(userLocation)}
+            title={userLabel}
+            pinColor={colors.accent}
+            zIndex={2}
           />
-        ))}
+        )}
       </MapView>
       <View pointerEvents="none" className="absolute bottom-0 right-0 rounded-tl-sm bg-background/80 px-1">
         <Text className={cn(TEXT.labelSmall, 'text-muted-foreground')}>{OSM_ATTRIBUTION}</Text>
