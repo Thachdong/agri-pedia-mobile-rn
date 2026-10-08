@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { SessionListener } from '@/features/auth';
+import { ChatRealtimeSync } from '@/features/chat';
 import { tokenStore } from '@/shared/lib/auth';
 import { AppProviders } from '@/shared/providers';
 
@@ -27,6 +28,7 @@ export default function RootLayout() {
   return (
     <AppProviders>
       <SessionListener />
+      <ChatRealtimeSync />
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false }} />
     </AppProviders>

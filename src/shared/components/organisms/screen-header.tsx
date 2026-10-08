@@ -6,6 +6,9 @@ import { cn } from '@/shared/lib/utils';
 import { TEXT } from '@/shared/theme';
 import { IconButton } from '../atoms';
 
+/** Height of the header (`h-14`) — e.g. keyboard offset of a screen body. */
+export const SCREEN_HEADER_HEIGHT = 56;
+
 export type TScreenHeaderProps = {
   title: string;
   /** Second line (e.g. connection state). */

@@ -1,6 +1,7 @@
 import { Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { useSession } from '@/features/auth';
+import { ChatHeaderButton } from '@/features/chat';
 import { Avatar, Button, IconButton } from '@/shared/components/atoms';
 import { ROUTES } from '@/shared/constants';
 import { useAppSheet } from '@/shared/lib/sheet';
@@ -10,7 +11,7 @@ import { UserMenuSheet } from './user-menu-sheet';
 
 /**
  * Right side of SiteHeader (ui-ux.md §6 (1)–(4)). Guest → Login / Register. Logged in → (1) notification, (2) chat,
- * (3) username + (4) avatar opening the user menu. Notification / chat are icons only for now (their features come next).
+ * (3) username + (4) avatar opening the user menu. Notification is an icon only for now (its feature comes next).
  */
 export function AccountHeaderActions() {
   const session = useSession();
@@ -36,7 +37,7 @@ export function AccountHeaderActions() {
   return (
     <View className="min-w-0 flex-row items-center">
       <IconButton icon="notifications-outline" accessibilityLabel="Thông báo" />
-      <IconButton icon="chatbubbles-outline" accessibilityLabel="Tin nhắn" />
+      <ChatHeaderButton />
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Tài khoản: ${user.username}`}

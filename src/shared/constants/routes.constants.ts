@@ -10,4 +10,6 @@ export const ROUTES = {
   resetPassword: '/auth/reset-password',
   changePassword: '/auth/change-password',
   profile: (id: string) => `/profile/${id}` as const,
+  chat: '/chat',
+  chatRoom: (roomId: string) => `/chat/${roomId}` as const,
 } as const;
