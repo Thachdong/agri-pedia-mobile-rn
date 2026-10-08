@@ -1,11 +1,11 @@
-import { useImperativeHandle, useRef, useState, type Ref } from 'react';
+import { useCallback, useImperativeHandle, useRef, useState, type Ref } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, UrlTile, type Region } from 'react-native-maps';
 import { env } from '@/shared/config';
 import { cn } from '@/shared/lib/utils';
 import { colors, TEXT } from '@/shared/theme';
 import type { TGeoPoint } from '@/shared/types';
-import { MAP_ZOOM, OSM_ATTRIBUTION, VN_CENTER } from './map.constants';
+import { MAP_ZOOM, OSM_ATTRIBUTION, VN_BOUNDS, VN_CENTER } from './map.constants';
 
 export type TMapMarker = {
   id: string;
@@ -26,11 +26,13 @@ export type TAppMapHandle = {
   animateTo: (point: TGeoPoint, latitudeDelta?: number) => void;
   /** Frames every point (one point → city level, none → no move). */
   fitTo: (points: readonly TGeoPoint[]) => void;
+  /** Frames mainland Vietnam. */
+  showCountry: () => void;
 };
 
 export type TAppMapProps = {
   ref?: Ref<TAppMapHandle>;
-  /** Initial camera center — read once on mount (move later with `ref.animateTo`). Default: center of VN. */
+  /** Initial camera center — read once on mount (move later with `ref.animateTo`). Default: mainland VN framed. */
   initialCenter?: TGeoPoint;
   /** Initial latitude span. Default: whole country. */
   initialLatitudeDelta?: number;
@@ -52,6 +54,7 @@ export type TAppMapProps = {
 type TLatLng = { latitude: number; longitude: number };
 
 const FIT_EDGE_PADDING = { top: 48, right: 48, bottom: 48, left: 48 };
+const COUNTRY_EDGE_PADDING = { top: 8, right: 8, bottom: 8, left: 8 };
 
 /** Identifier of the viewer marker — never a distributor id. */
 const USER_MARKER_ID = '__user__';
@@ -72,7 +75,7 @@ const toRegion = (point: TGeoPoint, latitudeDelta: number): Region => ({
  */
 export function AppMap({
   ref,
-  initialCenter = VN_CENTER,
+  initialCenter,
   initialLatitudeDelta = MAP_ZOOM.country,
   markers = [],
   selectedId = null,
@@ -86,25 +89,48 @@ export function AppMap({
   accessibilityLabel = 'Bản đồ',
 }: TAppMapProps) {
   const mapRef = useRef<MapView>(null);
-  const [initialRegion] = useState(() => toRegion(initialCenter, initialLatitudeDelta));
+  const [initialRegion] = useState(() => toRegion(initialCenter ?? VN_CENTER, initialLatitudeDelta));
+  // No center given → frame the country once the map has a size (a square delta shows half of SE Asia).
+  const [framesCountry] = useState(() => !initialCenter);
+  const isReadyRef = useRef(false);
+  /** Last camera command sent before the map was ready — native drops those, so it runs on ready instead. */
+  const pendingRef = useRef<((animated: boolean) => void) | null>(null);
+
+  const run = useCallback((command: (animated: boolean) => void) => {
+    if (isReadyRef.current) command(true);
+    else pendingRef.current = command;
+  }, []);
+
+  const fitCountry = useCallback((animated: boolean) => {
+    mapRef.current?.fitToCoordinates(VN_BOUNDS.map(toLatLng), { edgePadding: COUNTRY_EDGE_PADDING, animated });
+  }, []);
+
+  const onMapReady = useCallback(() => {
+    isReadyRef.current = true;
+    const command = pendingRef.current ?? (framesCountry ? fitCountry : null);
+    pendingRef.current = null;
+    command?.(false);
+  }, [framesCountry, fitCountry]);
 
   useImperativeHandle(
     ref,
     () => ({
-      animateTo: (point, latitudeDelta = MAP_ZOOM.street) => {
-        mapRef.current?.animateToRegion(toRegion(point, latitudeDelta));
-      },
+      animateTo: (point, latitudeDelta = MAP_ZOOM.street) =>
+        run((animated) => mapRef.current?.animateToRegion(toRegion(point, latitudeDelta), animated ? undefined : 0)),
       fitTo: (points) => {
         const [first] = points;
         if (!first) return;
         if (points.length === 1) {
-          mapRef.current?.animateToRegion(toRegion(first, MAP_ZOOM.city));
+          run((animated) => mapRef.current?.animateToRegion(toRegion(first, MAP_ZOOM.city), animated ? undefined : 0));
           return;
         }
-        mapRef.current?.fitToCoordinates(points.map(toLatLng), { edgePadding: FIT_EDGE_PADDING, animated: true });
+        run((animated) =>
+          mapRef.current?.fitToCoordinates(points.map(toLatLng), { edgePadding: FIT_EDGE_PADDING, animated }),
+        );
       },
+      showCountry: () => run(fitCountry),
     }),
-    [],
+    [run, fitCountry],
   );
 
   return (
@@ -113,6 +139,7 @@ export function AppMap({
         ref={mapRef}
         style={StyleSheet.absoluteFill}
         initialRegion={initialRegion}
+        onMapReady={onMapReady}
         mapType={Platform.OS === 'android' ? 'none' : 'standard'}
         rotateEnabled={false}
         pitchEnabled={false}

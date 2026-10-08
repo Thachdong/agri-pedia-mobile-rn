@@ -1,6 +1,6 @@
 import { createContext, use, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useSession } from '@/features/auth';
-import { AppMap, type TAppMapHandle, type TMapMarker } from '@/shared/lib/map';
+import { AppMap, MAP_ZOOM, type TAppMapHandle, type TMapMarker } from '@/shared/lib/map';
 import type { TGeoPoint } from '@/shared/types';
 import {
   useDistributorFilter,
@@ -84,9 +84,9 @@ export function DistributorExplorerProvider({ children }: { children: ReactNode 
   return <ExplorerContext value={value}>{children}</ExplorerContext>;
 }
 
-/** Map (5): one marker per distributor + the viewer; tap a marker → select it in the list; reframes on a new result. */
+/** Map (5): one marker per distributor + the viewer; tap a marker → select it in the list; reframes on a new filter. */
 export function DistributorExplorerMap({ className }: { className?: string }) {
-  const { query, params, viewerMarker, selectedId, select } = useExplorer();
+  const { query, params, filter, viewerMarker, selectedId, select } = useExplorer();
   const mapRef = useRef<TAppMapHandle>(null);
   const lastParamsRef = useRef<TNearbyDistributorsParams | null>(null);
   const needsFitRef = useRef(true);
@@ -110,9 +110,19 @@ export function DistributorExplorerMap({ className }: { className?: string }) {
     }
     if (!needsFitRef.current || !query.isSuccess) return;
     needsFitRef.current = false;
-    const points = markers.map((marker) => marker.point);
-    mapRef.current?.fitTo(viewerMarker ? [viewerMarker.point, ...points] : points);
-  }, [query.isSuccess, params, markers, viewerMarker]);
+    const map = mapRef.current;
+    if (!map) return;
+    // Province → its distributors. Otherwise centered on the viewer at province level (spec: "vị trí farmer nếu có");
+    // no position → the whole country.
+    if (filter.kind === 'province') {
+      if (markers.length > 0) map.fitTo(markers.map((marker) => marker.point));
+      else map.showCountry();
+    } else if (viewerMarker) {
+      map.animateTo(viewerMarker.point, MAP_ZOOM.province);
+    } else {
+      map.showCountry();
+    }
+  }, [query.isSuccess, params, filter, markers, viewerMarker]);
 
   return (
     <AppMap
