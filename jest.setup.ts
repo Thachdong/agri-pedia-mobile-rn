@@ -21,3 +21,10 @@ jest.mock('expo-secure-store', () => {
     __reset: () => store.clear(),
   };
 });
+
+// Animations / sheets: library mocks render content inline (an AppSheet's content is always mounted in tests).
+jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'));
+jest.mock('@gorhom/bottom-sheet', () => require('@gorhom/bottom-sheet/mock'));
+
+// Native map → plain Views (src/test-utils/react-native-maps.mock.tsx).
+jest.mock('react-native-maps', () => require('./src/test-utils/react-native-maps.mock'));

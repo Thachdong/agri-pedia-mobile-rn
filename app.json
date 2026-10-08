@@ -29,7 +29,13 @@
           "imageWidth": 76
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "AgriPedia dùng vị trí của bạn để chọn địa chỉ trên bản đồ và tìm nhà phân phối gần bạn."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
