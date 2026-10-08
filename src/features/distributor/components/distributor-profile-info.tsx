@@ -21,11 +21,12 @@ const ROWS: readonly TInfoTableItem[] = [
 
 /**
  * Distributor info (ui-ux.md §7, image-5): title + (5) Chat + info table. Chat is hidden on one's own profile;
- * it has no action yet (M1 / M2 come with the chat feature).
+ * hidden too while the session loads. It has no action yet (M1 / M2 come with the chat feature).
  */
 export function DistributorProfileInfo({ distributorId, className }: TDistributorProfileInfoProps) {
   const session = useSession();
-  const isOwner = session.user?.id === distributorId;
+  // Unknown viewer while the session loads → no Chat yet, so it never flashes on one's own profile.
+  const showChat = session.status !== 'loading' && session.user?.id !== distributorId;
 
   return (
     <View className={cn('gap-4', className)}>
@@ -33,7 +34,7 @@ export function DistributorProfileInfo({ distributorId, className }: TDistributo
         <Text accessibilityRole="header" numberOfLines={2} className={cn(TEXT.titleLarge, 'flex-1')}>
           Nhà phân phối
         </Text>
-        {!isOwner && <Button label="Chat" variant="outline" size="sm" />}
+        {showChat && <Button label="Chat" variant="outline" size="sm" />}
       </View>
       <InfoTable items={ROWS} />
     </View>

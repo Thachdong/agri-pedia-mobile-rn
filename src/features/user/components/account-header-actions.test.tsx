@@ -45,6 +45,6 @@ describe('AccountHeaderActions', () => {
     jest.mocked(useSession).mockReturnValue(authenticatedSession());
     await renderWithProviders(<AccountHeaderActions />);
     await fireEvent.press(screen.getByRole('button', { name: 'Tài khoản: Nông dân A' }));
-    expect(screen.getByRole('button', { name: /Đăng xuất/ })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Đăng xuất' })).toBeOnTheScreen();
   });
 });

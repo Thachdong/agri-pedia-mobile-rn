@@ -28,3 +28,6 @@ jest.mock('@gorhom/bottom-sheet', () => require('@gorhom/bottom-sheet/mock'));
 
 // Native map → plain Views (src/test-utils/react-native-maps.mock.tsx).
 jest.mock('react-native-maps', () => require('./src/test-utils/react-native-maps.mock'));
+
+// Safe-area hooks without a SafeAreaProvider (library mock: zero insets, fixed frame).
+jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);

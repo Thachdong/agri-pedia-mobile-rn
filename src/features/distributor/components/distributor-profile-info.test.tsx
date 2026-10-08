@@ -30,6 +30,12 @@ describe('DistributorProfileInfo', () => {
     expect(screen.getByRole('button', { name: 'Chat' })).toBeOnTheScreen();
   });
 
+  it('session loading → Chat hidden (no flash before the owner is known)', async () => {
+    jest.mocked(useSession).mockReturnValue({ status: 'loading', user: undefined, isLoggedIn: false });
+    await renderWithProviders(<DistributorProfileInfo distributorId="d1" />);
+    expect(screen.queryByRole('button', { name: 'Chat' })).toBeNull();
+  });
+
   it('owner (own profile) → Chat hidden', async () => {
     jest.mocked(useSession).mockReturnValue(loggedInAs('d1'));
     await renderWithProviders(<DistributorProfileInfo distributorId="d1" />);

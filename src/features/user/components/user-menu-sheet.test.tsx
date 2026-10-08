@@ -30,19 +30,19 @@ describe('UserMenuSheet', () => {
 
   it('FARMER → no "Trang cá nhân" (farmer profile out of scope)', async () => {
     await renderSheet(currentUser({ role: 'FARMER' }));
-    expect(screen.queryByRole('button', { name: /Trang cá nhân/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Trang cá nhân' })).toBeNull();
   });
 
   it('DISTRIBUTOR → "Trang cá nhân" closes the sheet and opens /profile/<id>', async () => {
     await renderSheet(currentUser({ id: 'd9', role: 'DISTRIBUTOR' }));
-    await fireEvent.press(screen.getByRole('button', { name: /Trang cá nhân/ }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Trang cá nhân' }));
     expect(onClose).toHaveBeenCalled();
     expect(mockPush).toHaveBeenCalledWith('/profile/d9');
   });
 
   it('Đăng xuất → closes the sheet, then logs out', async () => {
     await renderSheet();
-    await fireEvent.press(screen.getByRole('button', { name: /Đăng xuất/ }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Đăng xuất' }));
     expect(onClose).toHaveBeenCalled();
     expect(mutate).toHaveBeenCalledTimes(1);
   });
@@ -50,6 +50,6 @@ describe('UserMenuSheet', () => {
   it('logout pending → Đăng xuất disabled', async () => {
     jest.mocked(useLogout).mockReturnValue({ isPending: true, mutate } as unknown as ReturnType<typeof useLogout>);
     await renderSheet();
-    expect(screen.getByRole('button', { name: /Đăng xuất/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Đăng xuất' })).toBeDisabled();
   });
 });

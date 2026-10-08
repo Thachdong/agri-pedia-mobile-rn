@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLogout, type TCurrentUser } from '@/features/auth';
 import { Avatar, Icon, type TIconName } from '@/shared/components/atoms';
 import { ROUTES } from '@/shared/constants';
@@ -20,10 +21,12 @@ export type TUserMenuSheetProps = {
 export function UserMenuSheet({ sheetRef, onClose, user }: TUserMenuSheetProps) {
   const router = useRouter();
   const logout = useLogout();
+  const insets = useSafeAreaInsets();
 
   return (
     <AppSheet sheetRef={sheetRef} accessibilityLabel="Menu tài khoản">
-      <View className="gap-1 px-4 pb-8 pt-2">
+      {/* Bottom padding clears the home indicator / gesture bar. */}
+      <View style={{ paddingBottom: insets.bottom + 16 }} className="gap-1 px-4 pt-2">
         <View className="mb-2 flex-row items-center gap-3 border-b border-border-subtle pb-4">
           <Avatar src={user.avatar} name={user.username} />
           <Text numberOfLines={1} className={cn(TEXT.titleMedium, 'flex-1')}>
@@ -61,6 +64,8 @@ function MenuItem({ icon, label, onPress, disabled = false }: TMenuItemProps) {
   return (
     <Pressable
       accessibilityRole="button"
+      // Explicit label: otherwise the icon glyph is read as part of the name.
+      accessibilityLabel={label}
       accessibilityState={{ disabled, busy: disabled }}
       disabled={disabled}
       onPress={onPress}
