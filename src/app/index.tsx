@@ -1,40 +1,20 @@
-import { Link } from "expo-router";
-import { Text, View } from "react-native";
-import { useLogout, useSession } from "@/features/auth";
-import { Button } from "@/shared/components/atoms";
-import { ROUTES } from "@/shared/constants";
-import { TEXT } from "@/shared/theme";
+import { AccountHeaderActions } from '@/features/user';
+import { EmptyState } from '@/shared/components/molecules';
+import { SiteHeader } from '@/shared/components/organisms';
+import { MapListLayout } from '@/shared/components/templates';
+import { AppMap } from '@/shared/lib/map';
 
-// Placeholder until the distributor home ("/") is built.
-// TODO(dev): remove DEV_LINKS when the real home lands — shortcuts so Expo Go can reach screens.
-const DEV_LINKS = [
-  { label: "Đăng nhập", href: ROUTES.login },
-  { label: "Đăng ký", href: ROUTES.register },
-  { label: "Kích hoạt tài khoản", href: ROUTES.activate },
-  { label: "Quên mật khẩu", href: ROUTES.resetPassword },
-  { label: "Đổi mật khẩu", href: ROUTES.changePassword },
-  { label: "Sitemap", href: "/_sitemap" },
-] as const;
-
+/**
+ * Home "/" (ui-ux.md §6, image-4) — public. Layout only: (1)–(4) header by session, (5) map centered on VN,
+ * (6) filter and (7) distributor list are placeholders until GET /distributors/nearby is wired.
+ */
 export default function HomeScreen() {
-  const session = useSession();
-  const logout = useLogout();
   return (
-    <View className="flex-1 items-center justify-center gap-3 bg-background p-4">
-      <Text className={TEXT.titleLarge}>AgriPedia</Text>
-      {DEV_LINKS.map(({ label, href }) => (
-        <Link key={href} href={href} asChild>
-          <Button label={label} variant="outline" className="w-full" />
-        </Link>
-      ))}
-      {session.isLoggedIn && (
-        <Button
-          label={`Đăng xuất (${session.user.username})`}
-          loading={logout.isPending}
-          onPress={() => logout.mutate()}
-          className="w-full"
-        />
-      )}
-    </View>
+    <MapListLayout
+      header={<SiteHeader actions={<AccountHeaderActions />} />}
+      map={<AppMap accessibilityLabel="Bản đồ nhà phân phối" className="flex-1" />}
+      filters={<EmptyState icon="options-outline" title="Tìm kiếm và bộ lọc" className="py-0" />}
+      list={<EmptyState icon="storefront-outline" title="Chưa có nhà phân phối" />}
+    />
   );
 }
