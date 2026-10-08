@@ -14,8 +14,11 @@ export const USER_LABELS = {
 
 export const NEAR_ME_FAILED_MESSAGE = 'Không lấy được vị trí hiện tại. Hãy bật định vị và cấp quyền vị trí cho ứng dụng.';
 
-/** Note above the list when the server had to widen the search (nobody in the radius / the chosen province). */
-export const NEARBY_SCOPE_NOTES: Partial<Record<TNearbyScope, string>> = {
+/**
+ * Note above the list when the server had to widen the search. `nationwide` is only a fallback when an area was
+ * asked for (source `query_area`); with no location at all it is the normal result → no note.
+ */
+export const NEARBY_FALLBACK_NOTES = {
   nationwide_by_distance: 'Không có nhà phân phối trong bán kính 30 km — đang hiển thị nơi gần nhất.',
   nationwide: 'Tỉnh/thành này chưa có nhà phân phối — đang hiển thị toàn quốc.',
-};
+} as const satisfies Partial<Record<TNearbyScope, string>>;
