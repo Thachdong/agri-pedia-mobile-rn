@@ -34,3 +34,6 @@ export type TChatMessageReceivedEvent = {
   message: string;
   createdAt: string;
 };
+
+/** Composer values (room / receiver decided by the conversation). */
+export type TChatMessageFormValues = Pick<TSendMessageInput, 'message'>;
