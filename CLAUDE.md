@@ -10,7 +10,7 @@ Run every npm/npx command from `ui_ux_rn/` (`cd ui_ux_rn && ...`). Run `.claude/
 - Checks: `cd ui_ux_rn && npx tsc --noEmit && npx expo lint && npx jest <files>`. Lint encodes the dependency rules below (`rn-arch-lint-setup`).
 
 ## Stack
-Expo (latest SDK) + Expo Router (file routes in `src/app/`), TypeScript strict, `@/*` → `src/*`. TanStack Query (wrapped), fetch-based http client (wrapped), react-hook-form + joi (wrapped), socket.io-client (wrapped), expo-secure-store + @react-native-async-storage/async-storage (wrapped), expo-location + expo-image-picker (wrapped), react-native-maps + `UrlTile` OSM (wrapped), @gorhom/bottom-sheet (wrapped), sonner-native (wrapped), NativeWind (Tailwind) + `cva` + `cn`, expo-image, jest-expo + @testing-library/react-native.
+Expo (latest SDK) + Expo Router (file routes in `src/app/`), TypeScript strict, `@/*` → `src/*`. TanStack Query (wrapped), fetch-based http client (wrapped), react-hook-form + joi (wrapped), socket.io-client (wrapped), expo-secure-store + @react-native-async-storage/async-storage (wrapped), expo-location + expo-image-picker (wrapped), react-native-maps + `UrlTile` OSM (wrapped), @gorhom/bottom-sheet (wrapped), sonner-native (wrapped), NativeWind (Tailwind) + `cva` + `cn`, expo-image, @expo/vector-icons (Ionicons, through the `Icon` atom), jest-expo + @testing-library/react-native.
 
 ## Structure
 ```
@@ -81,7 +81,7 @@ Tests colocated: `<file>.test.ts(x)` next to the unit. `ios/` and `android/` are
 - `src/shared` → never `@/features/*` (type-only allowed in `query-keys.ts`). `src/features/<a>` → other features only via `@/features/<b>`. `src/app` → anything public.
 - Inside a feature: `components → hooks → services → @/shared/lib/http`; `schemas/types/constants/utils` are leaves.
 - Atomic direction: atoms ↛ molecules/organisms/templates; molecules ↛ organisms/templates; only organisms call data hooks or `useAppForm`.
-- Wrapped packages only in their folder under `src/shared/lib/<concern>/`: `@tanstack/react-query` + `@react-native-community/netinfo` (query), `joi`, `react-hook-form`, `@hookform/resolvers`, `socket.io-client`, `expo-secure-store`, `@react-native-async-storage/async-storage`, `expo-location`, `expo-image-picker`, `react-native-maps`, `@gorhom/bottom-sheet`, `sonner-native`. Tests (`src/test-utils/`, `*.test.ts(x)`) may import them directly.
+- Wrapped packages only in their folder under `src/shared/lib/<concern>/`: `@tanstack/react-query` + `@react-native-community/netinfo` (query), `joi`, `react-hook-form`, `@hookform/resolvers`, `socket.io-client`, `expo-secure-store`, `@react-native-async-storage/async-storage`, `expo-location`, `expo-image-picker`, `react-native-maps`, `@gorhom/bottom-sheet`, `sonner-native`. `@expo/vector-icons` only in `src/shared/components/atoms/icon.tsx` (use `Icon`). Tests (`src/test-utils/`, `*.test.ts(x)`) may import them directly.
 - `process.env` only in `src/shared/config/`. `fetch(` only in `src/shared/lib/http/` and `src/shared/lib/auth/`.
 - No hex/rgb literals, raw Tailwind palette classes (`bg-green-700`) or arbitrary colors (`bg-[#..]`) outside `src/shared/theme/`. Numeric `fontSize` in `style` forbidden — use text classes / `TEXT` roles.
 - Default exports only in `src/app/**` (route files); named exports everywhere else.
