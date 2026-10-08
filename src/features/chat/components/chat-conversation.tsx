@@ -1,5 +1,5 @@
 import { useCallback, useState, useSyncExternalStore } from 'react';
-import { ActivityIndicator, AppState, FlatList, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
+import { ActivityIndicator, AppState, FlatList, KeyboardAvoidingView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, IconButton, Input } from '@/shared/components/atoms';
 import { EmptyState } from '@/shared/components/molecules';
@@ -79,8 +79,10 @@ export function ChatConversation({ target, currentUserId, headerHeight, onRoomCr
   );
 
   return (
+    // `padding` on Android too: edge-to-edge (always on since SDK 54) stops `adjustResize` from shrinking the
+    // window, so without it the composer stays under the keyboard.
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior="padding"
       keyboardVerticalOffset={insets.top + headerHeight}
       className={cn('flex-1 bg-background', className)}
     >
