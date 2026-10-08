@@ -29,7 +29,15 @@ export type TAppSheetProps = {
   accessibilityLabel?: string;
   /** false → dragging the content doesn't move the sheet (content with its own gestures, e.g. a map). Handle still drags. */
   contentPanningEnabled?: boolean;
+  /**
+   * Fixed heights (e.g. `['80%']`) instead of following the content. Required around an `AppSheetFlatList`:
+   * with dynamic sizing the list reports its full content height and the sheet can't size / scroll it.
+   * Children then fill the sheet (`flex-1` on the list's container).
+   */
+  snapPoints?: (string | number)[];
 };
+
+const FILL = { flex: 1 } as const;
 
 function renderBackdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} pressBehavior="close" />;
@@ -46,12 +54,15 @@ export function AppSheet({
   onDismiss,
   accessibilityLabel,
   contentPanningEnabled = true,
+  snapPoints,
 }: TAppSheetProps) {
   const Container = scrollable ? BottomSheetScrollView : BottomSheetView;
+  const isFixed = !!snapPoints;
   return (
     <BottomSheetModal
       ref={sheetRef}
-      enableDynamicSizing
+      enableDynamicSizing={!isFixed}
+      snapPoints={snapPoints}
       enablePanDownToClose
       enableContentPanningGesture={contentPanningEnabled}
       backdropComponent={renderBackdrop}
@@ -61,7 +72,7 @@ export function AppSheet({
       onDismiss={onDismiss}
       accessibilityLabel={accessibilityLabel}
     >
-      <Container>{children}</Container>
+      <Container style={isFixed ? FILL : undefined}>{children}</Container>
     </BottomSheetModal>
   );
 }
@@ -80,5 +91,5 @@ cssInterop(BottomSheetTextInput, { className: 'style' });
 /** TextInput for use inside an AppSheet (keeps the sheet above the keyboard). Takes `className`. */
 export const AppSheetTextInput = BottomSheetTextInput;
 
-/** FlatList for long lists inside an AppSheet (not `scrollable`): give it a fixed height so dynamic sizing can measure it. */
+/** FlatList for long lists inside an AppSheet with `snapPoints` (not `scrollable`, not dynamic sizing) — container `flex-1`. */
 export const AppSheetFlatList = BottomSheetFlatList;

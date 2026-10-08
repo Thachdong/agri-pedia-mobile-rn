@@ -28,6 +28,8 @@ export type TSelectFieldProps<T extends string> = {
 };
 
 const SEARCHABLE_FROM = 8;
+/** Long option lists (provinces, wards) → fixed-height sheet so the list scrolls (see AppSheet `snapPoints`). */
+const LONG_LIST_SNAP_POINTS = ['80%'];
 
 /** Lowercase, no Vietnamese diacritics — "Hà Nội" matches "ha noi". */
 const normalize = (text: string) =>
@@ -57,7 +59,8 @@ export function SelectField<T extends string>({
   const sheet = useAppSheet();
   const [query, setQuery] = useState('');
   const isDisabled = disabled || loading;
-  const showSearch = searchable ?? options.length > SEARCHABLE_FROM;
+  const isLong = options.length > SEARCHABLE_FROM;
+  const showSearch = searchable ?? isLong;
   const selected = options.find((option) => option.value === value);
 
   const filtered = useMemo(() => {
@@ -114,8 +117,13 @@ export function SelectField<T extends string>({
         </View>
       )}
 
-      <AppSheet sheetRef={sheet.ref} accessibilityLabel={label} onDismiss={() => setQuery('')}>
-        <View className="gap-3 px-4 pb-6 pt-1">
+      <AppSheet
+        sheetRef={sheet.ref}
+        accessibilityLabel={label}
+        onDismiss={() => setQuery('')}
+        snapPoints={isLong ? LONG_LIST_SNAP_POINTS : undefined}
+      >
+        <View className={cn('gap-3 px-4 pb-6 pt-1', isLong && 'flex-1')}>
           <Text accessibilityRole="header" className={TEXT.titleMedium}>
             {label}
           </Text>
@@ -130,7 +138,7 @@ export function SelectField<T extends string>({
               className="min-h-11 rounded-lg border border-input bg-background px-3 text-base text-foreground"
             />
           )}
-          <View className={cn(options.length > SEARCHABLE_FROM ? 'h-96' : 'max-h-96')}>
+          <View className={cn(isLong ? 'flex-1' : 'max-h-96')}>
             <AppSheetFlatList
               data={filtered}
               keyExtractor={(option: TSelectOption<T>) => option.value}
