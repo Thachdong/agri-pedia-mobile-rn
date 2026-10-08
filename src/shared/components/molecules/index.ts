@@ -1,6 +1,7 @@
 export { CountdownResend, type TCountdownResendProps } from './countdown-resend';
 export { EmptyState, type TEmptyStateProps } from './empty-state';
 export { FormInput, type TFormInputProps } from './form-input';
+export { IconBadgeButton, type TIconBadgeButtonProps } from './icon-badge-button';
 export { InfoTable, type TInfoTableItem, type TInfoTableProps } from './info-table';
 export { OtpCodeInput, type TOtpCodeInputProps } from './otp-code-input';
 export { RadioCardGroup, type TRadioCardGroupProps, type TRadioCardOption } from './radio-card-group';

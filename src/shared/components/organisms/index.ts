@@ -6,3 +6,4 @@ export {
   type TInfiniteListProps,
   type TInfiniteListQuery,
 } from './infinite-list';
+export { ScreenHeader, type TScreenHeaderProps } from './screen-header';
