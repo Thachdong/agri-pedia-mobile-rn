@@ -12,6 +12,9 @@ export const USER_LABELS = {
   profile: 'Địa chỉ của bạn',
 } as const;
 
+/** Screen-reader hint of the "Gần tôi" button while that filter is on (the button only changes color). */
+export const NEAR_ME_ACTIVE_HINT = 'Đang lọc theo vị trí của bạn';
+
 export const NEAR_ME_FAILED_MESSAGE = 'Không lấy được vị trí hiện tại. Hãy bật định vị và cấp quyền vị trí cho ứng dụng.';
 
 /**
@@ -19,6 +22,6 @@ export const NEAR_ME_FAILED_MESSAGE = 'Không lấy được vị trí hiện t�
  * asked for (source `query_area`); with no location at all it is the normal result → no note.
  */
 export const NEARBY_FALLBACK_NOTES = {
-  nationwide_by_distance: 'Không có nhà phân phối trong bán kính 30 km — đang hiển thị nơi gần nhất.',
+  nationwide_by_distance: 'Không có nhà phân phối trong bán kính gần bạn — đang hiển thị nơi gần nhất.',
   nationwide: 'Tỉnh/thành này chưa có nhà phân phối — đang hiển thị toàn quốc.',
 } as const satisfies Partial<Record<TNearbyScope, string>>;

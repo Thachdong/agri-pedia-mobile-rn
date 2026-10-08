@@ -88,7 +88,8 @@ export function DistributorExplorerProvider({ children }: { children: ReactNode 
 export function DistributorExplorerMap({ className }: { className?: string }) {
   const { query, params, viewerMarker, selectedId, select } = useExplorer();
   const mapRef = useRef<TAppMapHandle>(null);
-  const fittedParamsRef = useRef<TNearbyDistributorsParams | null>(null);
+  const lastParamsRef = useRef<TNearbyDistributorsParams | null>(null);
+  const needsFitRef = useRef(true);
   const items = query.data?.items;
 
   const markers = useMemo<TMapMarker[]>(
@@ -101,10 +102,14 @@ export function DistributorExplorerMap({ className }: { className?: string }) {
     [items],
   );
 
-  // Frame once per filter, when its first page arrives — not on every next page / refetch.
+  // Frame once per filter change, when its first page is there (fetched or cached) — not on next pages / refetch.
   useEffect(() => {
-    if (!query.isSuccess || fittedParamsRef.current === params) return;
-    fittedParamsRef.current = params;
+    if (lastParamsRef.current !== params) {
+      lastParamsRef.current = params;
+      needsFitRef.current = true;
+    }
+    if (!needsFitRef.current || !query.isSuccess) return;
+    needsFitRef.current = false;
     const points = markers.map((marker) => marker.point);
     mapRef.current?.fitTo(viewerMarker ? [viewerMarker.point, ...points] : points);
   }, [query.isSuccess, params, markers, viewerMarker]);

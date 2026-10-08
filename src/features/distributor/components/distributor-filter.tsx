@@ -3,6 +3,7 @@ import { useProvinces, type TProvince } from '@/features/location';
 import { Button } from '@/shared/components/atoms';
 import { SelectField, type TSelectOption } from '@/shared/components/molecules';
 import { cn } from '@/shared/lib/utils';
+import { NEAR_ME_ACTIVE_HINT } from '../constants/distributor.constants';
 import type { TDistributorFilter } from '../hooks/use-distributor-filter';
 
 export type TDistributorFilterProps = {
@@ -51,6 +52,7 @@ export function DistributorFilter({
         <Button
           label="Gần tôi"
           variant={filter.kind === 'near' ? 'highlight' : 'outline'}
+          accessibilityHint={filter.kind === 'near' ? NEAR_ME_ACTIVE_HINT : undefined}
           loading={isLocatingNear}
           disabled={disabled}
           onPress={onNearMe}
