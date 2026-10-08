@@ -33,6 +33,22 @@ describe('useSendMessage', () => {
     expect(cache?.pages[0]?.messages[0]).toMatchObject({ senderId: 'u1', message: 'xin chào', createdAt: ACK.createdAt });
   });
 
+  it('message is in the room cache before the rooms refetch finishes', async () => {
+    jest.mocked(sendMessage).mockResolvedValue(ACK);
+    const client = createTestQueryClient();
+    client.setQueryData<TChatMessagesCache>(queryKeys.chat.messages('r1'), {
+      pages: [chatMessagesPage({ messages: [] })],
+      pageParams: [undefined],
+    });
+    // Rooms refetch never settles: the send must not wait for it.
+    jest.spyOn(client, 'invalidateQueries').mockReturnValue(new Promise(() => undefined));
+    const { result } = await renderHook(() => useSendMessage('u1'), { wrapper: hookWrapper(client) });
+
+    await act(() => result.current.mutateAsync({ roomId: 'r1', message: 'hi' }));
+
+    expect(client.getQueryData<TChatMessagesCache>(queryKeys.chat.messages('r1'))?.pages[0]?.messages).toHaveLength(1);
+  });
+
   it('ack error → AppError with the server code', async () => {
     jest
       .mocked(sendMessage)
