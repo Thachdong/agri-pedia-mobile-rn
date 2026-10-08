@@ -28,4 +28,9 @@ export const queryKeys = {
     all: ['distributors'] as const,
     nearby: (params: TNearbyDistributorsParams) => [...queryKeys.distributors.all, 'nearby', params] as const,
   },
+  chat: {
+    all: ['chat'] as const,
+    rooms: () => [...queryKeys.chat.all, 'rooms'] as const,
+    messages: (roomId: string) => [...queryKeys.chat.all, 'messages', roomId] as const,
+  },
 } as const;

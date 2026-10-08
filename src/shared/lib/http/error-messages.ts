@@ -67,4 +67,8 @@ const MESSAGES: Record<string, string> = {
   OTP_BLOCKED: 'Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.',
   // Location
   LOCATION_PROVINCE_NOT_FOUND: 'Không tìm thấy tỉnh/thành phố.',
+  // Chat
+  CHAT_INVALID_CURSOR: 'Không tải được thêm tin nhắn. Vui lòng tải lại.',
+  CHAT_ROOM_NOT_FOUND: 'Không tìm thấy cuộc trò chuyện.',
+  CHAT_NOT_ROOM_MEMBER: 'Bạn không thuộc cuộc trò chuyện này.',
 };
