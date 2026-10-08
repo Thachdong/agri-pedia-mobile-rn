@@ -1,4 +1,5 @@
 // Public API of the `chat` feature. Other features and src/app import only this file.
+export { ChatConversation, type TChatConversationProps, type TChatTarget } from './components/chat-conversation';
 export { chatRoomsQuery, roomMessagesQuery } from './hooks/chat.queries';
 export { useChatRealtime } from './hooks/use-chat-realtime';
 export { useChatRooms } from './hooks/use-chat-rooms';
