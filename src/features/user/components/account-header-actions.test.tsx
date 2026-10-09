@@ -9,6 +9,7 @@ jest.mock('expo-router', () => ({
   useRouter: () => ({ push: jest.fn() }),
 }));
 jest.mock('@/features/auth', () => ({ useSession: jest.fn(), useLogout: jest.fn() }));
+jest.mock('@/shared/lib/toast', () => ({ toast: { info: jest.fn(), error: jest.fn() } }));
 
 describe('AccountHeaderActions', () => {
   beforeEach(() => {

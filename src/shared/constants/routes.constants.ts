@@ -12,6 +12,7 @@ export const ROUTES = {
   profile: (id: string) => `/profile/${id}` as const,
   /** Product detail — a page on mobile (web: dialog M3). */
   product: (id: string) => `/product/${id}` as const,
+  notifications: '/notifications',
   chat: '/chat',
   chatRoom: (roomId: string) => `/chat/${roomId}` as const,
 } as const;
