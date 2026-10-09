@@ -33,4 +33,16 @@ export const queryKeys = {
     rooms: () => [...queryKeys.chat.all, 'rooms'] as const,
     messages: (roomId: string) => [...queryKeys.chat.all, 'messages', roomId] as const,
   },
+  notifications: {
+    all: ['notifications'] as const,
+    list: () => [...queryKeys.notifications.all, 'list'] as const,
+  },
+  reviews: {
+    all: ['reviews'] as const,
+    /** Prefix of every review query of one shop — a new review of the shop makes all of them stale. */
+    distributor: (distributorId: string) => [...queryKeys.reviews.all, 'distributor', distributorId] as const,
+    /** One review of the shop looked up by id (REVIEW notification → its target). */
+    find: (distributorId: string, reviewId: string) =>
+      [...queryKeys.reviews.distributor(distributorId), 'find', reviewId] as const,
+  },
 } as const;

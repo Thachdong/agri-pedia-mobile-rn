@@ -76,4 +76,10 @@ const MESSAGES: Record<string, string> = {
   CHAT_RECEIVER_NOT_FOUND: 'Không tìm thấy người nhận.',
   CHAT_INVALID_RECEIVER: 'Không thể gửi tin nhắn cho người dùng này.',
   CHAT_INVALID_MESSAGE: 'Tin nhắn phải từ 1 đến 2000 ký tự.',
+  // Notification
+  NOTIFICATION_INVALID_CURSOR: 'Không tải được thêm thông báo. Vui lòng tải lại.',
+  NOTIFICATION_NOT_FOUND: 'Không tìm thấy thông báo.',
+  // Review
+  REVIEW_INVALID_CURSOR: 'Không tải được thêm đánh giá. Vui lòng tải lại.',
+  REVIEW_DISTRIBUTOR_NOT_FOUND: 'Không tìm thấy nhà phân phối.',
 };
