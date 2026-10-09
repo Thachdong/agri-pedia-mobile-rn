@@ -41,6 +41,7 @@ const MESSAGES: Record<string, string> = {
   // Client
   [APP_ERROR_CODE.NETWORK_ERROR]: 'Không có kết nối mạng. Vui lòng kiểm tra và thử lại.',
   [APP_ERROR_CODE.TIMEOUT]: 'Kết nối quá chậm. Vui lòng thử lại.',
+  [APP_ERROR_CODE.UPLOAD_FAILED]: 'Tải tệp lên thất bại. Vui lòng thử lại.',
   [APP_ERROR_CODE.VALIDATION_ERROR]: 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.',
   // Session
   AUTH_INVALID_ACCESS_TOKEN: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',

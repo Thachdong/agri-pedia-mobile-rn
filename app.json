@@ -35,6 +35,14 @@
         {
           "locationWhenInUsePermission": "AgriPedia dùng vị trí của bạn để chọn địa chỉ trên bản đồ và tìm nhà phân phối gần bạn."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "AgriPedia dùng thư viện ảnh để bạn chọn ảnh đại diện và giấy phép kinh doanh.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
       ]
     ],
     "experiments": {

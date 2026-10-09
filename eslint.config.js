@@ -22,6 +22,7 @@ const WRAPPED = [
   { name: '@react-native-async-storage/async-storage', message: 'Use @/shared/lib/storage.' },
   { name: 'expo-location', message: 'Use @/shared/lib/device.' },
   { name: 'expo-image-picker', message: 'Use @/shared/lib/device.' },
+  { name: 'expo-document-picker', message: 'Use @/shared/lib/device.' },
   { name: 'react-native-maps', message: 'Use AppMap from @/shared/lib/map.' },
   { name: '@gorhom/bottom-sheet', message: 'Use @/shared/lib/sheet.' },
   { name: 'sonner-native', message: 'Use @/shared/lib/toast.' },
