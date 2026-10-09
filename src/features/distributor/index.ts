@@ -7,9 +7,12 @@ export {
 } from './components/distributor-explorer';
 export { DistributorProfileInfo } from './components/distributor-profile-info';
 export { DistributorProfileTabs } from './components/distributor-profile-tabs';
+export { distributorProfileQuery } from './hooks/distributor-profile.queries';
 export { nearbyDistributorsQuery } from './hooks/distributor.queries';
+export { useDistributorProfile } from './hooks/use-distributor-profile';
 export { useNearbyDistributors } from './hooks/use-nearby-distributors';
 export type {
+  TDistributorProfile,
   TNearbyDistributor,
   TNearbyDistributorsParams,
   TNearbyDistributorsView,

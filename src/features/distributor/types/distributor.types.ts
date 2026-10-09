@@ -18,3 +18,9 @@ export type TNearbyDistributorsPageParams = TNearbyDistributorsParams & Pick<TNe
 export type TNearbyDistributorsView = Pick<TNearbyDistributorsResponse, 'scope' | 'source' | 'total'> & {
   items: TNearbyDistributor[];
 };
+
+/**
+ * GET /distributors/{id} — `email` / `phone`: the login identifier (the other is null); `avatar` a media id (no URL);
+ * `bussinessLicense` a signed read URL (expires) or null; `address` the primary one (codenames) or null.
+ */
+export type TDistributorProfile = TApiSchema<'DistributorProfileResponse'>;

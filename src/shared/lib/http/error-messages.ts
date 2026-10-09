@@ -57,6 +57,10 @@ const MESSAGES: Record<string, string> = {
   USER_LOCATION_INVALID: 'Tỉnh/thành phố hoặc phường/xã không hợp lệ. Vui lòng chọn lại.',
   USER_BUSINESS_TYPE_REQUIRED: 'Vui lòng chọn loại hình kinh doanh.',
   USER_BUSINESS_TYPE_NOT_ALLOWED: 'Nông dân không cần chọn loại hình kinh doanh.',
+  USER_NOT_FOUND: 'Không tìm thấy tài khoản.',
+  USER_DISTRIBUTOR_NOT_FOUND: 'Không tìm thấy nhà phân phối.',
+  // Media
+  MEDIA_INVALID_EXTENSION: 'Định dạng tệp không được hỗ trợ.',
   // OTP (activate, resend, reset-password, change-password)
   OTP_ACCOUNT_NOT_FOUND: 'Không tìm thấy tài khoản với email/số điện thoại này.',
   OTP_ACCOUNT_NOT_ACTIVE: 'Tài khoản chưa được kích hoạt.',

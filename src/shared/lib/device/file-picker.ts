@@ -28,13 +28,16 @@ export async function pickImage(): Promise<TPickedFile | null> {
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: IMAGE_QUALITY });
     const asset = result.canceled ? undefined : result.assets[0];
     if (!asset) return null;
-    const name = asset.fileName ?? nameFromUri(asset.uri);
+    // Extension of the real file: iOS re-encodes (HEIC → JPEG) while `fileName` keeps the original name.
+    const extension = extensionOf(asset.uri);
+    const original = asset.fileName ?? nameFromUri(asset.uri);
+    const base = original.includes('.') ? original.slice(0, original.lastIndexOf('.')) : original;
     return {
       uri: asset.uri,
-      name,
+      name: extension ? `${base}.${extension}` : original,
       mimeType: asset.mimeType ?? 'image/jpeg',
       size: asset.fileSize ?? null,
-      extension: extensionOf(name),
+      extension,
     };
   } catch {
     return null;
