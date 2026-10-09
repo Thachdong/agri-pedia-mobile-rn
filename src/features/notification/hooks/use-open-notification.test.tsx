@@ -9,8 +9,12 @@ import { useOpenNotification } from './use-open-notification';
 
 const mockPush = jest.fn();
 const mockFindReview = jest.fn();
+const mockIsFocused = jest.fn();
 
-jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ push: mockPush }),
+  useNavigation: () => ({ isFocused: mockIsFocused }),
+}));
 jest.mock('@/features/auth', () => ({ useSession: jest.fn() }));
 jest.mock('@/features/review', () => ({ findDistributorReviewQuery: jest.fn() }));
 jest.mock('@/shared/lib/toast', () => ({ toast: { info: jest.fn(), error: jest.fn() } }));
@@ -26,6 +30,7 @@ describe('useOpenNotification', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     jest.mocked(useSession).mockReturnValue(session);
+    mockIsFocused.mockReturnValue(true);
     jest.mocked(markNotificationRead).mockResolvedValue(undefined);
     jest.mocked(findDistributorReviewQuery).mockImplementation(
       ({ distributorId, reviewId }) =>
@@ -73,5 +78,26 @@ describe('useOpenNotification', () => {
     await act(async () => result.current.open(notification({ referenceId: null })));
     expect(toast.info).toHaveBeenCalled();
     expect(mockFindReview).not.toHaveBeenCalled();
+  });
+
+  it('openingId = the REVIEW notification while its review is looked up', async () => {
+    let resolve: (value: unknown) => void = () => {};
+    mockFindReview.mockReturnValue(new Promise((r) => (resolve = r)));
+    const { result } = await render();
+    await act(async () => result.current.open(notification({ id: 'n7' })));
+    await waitFor(() => expect(result.current.openingId).toBe('n7'));
+    await act(async () => resolve(null));
+    await waitFor(() => expect(result.current.openingId).toBeUndefined());
+  });
+
+  it('screen left before the lookup ended → no navigation, no toast', async () => {
+    mockFindReview.mockResolvedValue({ id: 'rv1', targetType: 'PRODUCT', targetId: 'p1' });
+    mockIsFocused.mockReturnValue(false);
+    const { result } = await render();
+    await act(async () => result.current.open(notification()));
+    await waitFor(() => expect(mockFindReview).toHaveBeenCalled());
+    await act(async () => {});
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(toast.info).not.toHaveBeenCalled();
   });
 });

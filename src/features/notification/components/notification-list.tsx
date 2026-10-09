@@ -42,7 +42,7 @@ export function NotificationList({ className }: { className?: string }) {
         <NotificationItem
           notification={notification}
           onPress={open}
-          isOpening={notification.type === 'REVIEW' && notification.referenceId === openingId}
+          isOpening={notification.id === openingId}
         />
       )}
       header={header}
