@@ -2,6 +2,7 @@
 export { AccountHeaderActions } from './components/account-header-actions';
 export { EditProfileSheet, type TEditProfileSheetProps } from './components/edit-profile-sheet';
 export { FarmerProfileInfo, type TFarmerProfileInfoProps } from './components/farmer-profile-info';
+export { ManageAddressesSection, type TManageAddressesSectionProps } from './components/manage-addresses-section';
 export { useCreateMyAddress } from './hooks/use-create-my-address';
 export { useDeleteMyAddress } from './hooks/use-delete-my-address';
 export { useMyAddresses } from './hooks/use-my-addresses';

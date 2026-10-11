@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Linking, Pressable, Text, View } from 'react-native';
+import { useSession } from '@/features/auth';
 import { useAddressLabel } from '@/features/location';
+import { ManageAddressesSection } from '@/features/user';
 import { Avatar, Button } from '@/shared/components/atoms';
 import { EmptyState, InfoTable, type TInfoTableItem } from '@/shared/components/molecules';
 import { BUSINESS_TYPE_LABELS } from '@/shared/constants';
@@ -24,10 +26,13 @@ export type TDistributorProfileInfoProps = {
 /**
  * Distributor info (ui-ux.md §7, image-5): avatar + username, actions, then Email / Phone, Giấy phép kinh doanh (opens the
  * signed URL), Địa chỉ (primary), Lĩnh vực kinh doanh, Giới thiệu. Loading, error + retry, not found.
+ * Owner: the addresses are managed below the table (M7) instead of the read-only "Địa chỉ" row.
  */
 export function DistributorProfileInfo({ distributorId, actions, className }: TDistributorProfileInfoProps) {
   const { data: profile, isPending, isError, error, refetch } = useDistributorProfile(distributorId);
   const address = useAddressLabel(profile?.address);
+  const { user } = useSession();
+  const isOwner = user?.id === distributorId;
 
   if (isPending) {
     return (
@@ -70,7 +75,7 @@ export function DistributorProfileInfo({ distributorId, actions, className }: TD
         'Chưa cung cấp'
       ),
     },
-    { id: 'address', label: 'Địa chỉ', value: address },
+    ...(isOwner ? [] : [{ id: 'address', label: 'Địa chỉ', value: address }]),
     {
       id: 'businessType',
       label: 'Lĩnh vực kinh doanh',
@@ -90,6 +95,7 @@ export function DistributorProfileInfo({ distributorId, actions, className }: TD
       </View>
       {actions}
       <InfoTable items={rows} />
+      {isOwner && <ManageAddressesSection userId={distributorId} />}
     </View>
   );
 }
