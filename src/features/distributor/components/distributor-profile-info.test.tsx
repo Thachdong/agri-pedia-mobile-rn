@@ -89,4 +89,14 @@ describe('DistributorProfileInfo', () => {
     expect(await screen.findByText('1 Kim Mã, Phường Ba Đình, Hà Nội')).toBeOnTheScreen();
     expect(screen.queryByText(/ADDRESSES/)).toBeNull();
   });
+
+  it('session loading → neither the address row nor the management yet', async () => {
+    jest.mocked(useSession).mockReturnValue({ status: 'loading', user: undefined, isLoggedIn: false });
+    jest.mocked(getDistributorProfile).mockResolvedValue(distributorProfile());
+    await renderWithProviders(<DistributorProfileInfo distributorId="d1" />);
+
+    expect(await screen.findByRole('header', { name: 'Đại lý Minh Phát' })).toBeOnTheScreen();
+    expect(screen.queryByText('1 Kim Mã, Phường Ba Đình, Hà Nội')).toBeNull();
+    expect(screen.queryByText(/ADDRESSES/)).toBeNull();
+  });
 });

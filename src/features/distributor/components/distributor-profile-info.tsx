@@ -31,8 +31,10 @@ export type TDistributorProfileInfoProps = {
 export function DistributorProfileInfo({ distributorId, actions, className }: TDistributorProfileInfoProps) {
   const { data: profile, isPending, isError, error, refetch } = useDistributorProfile(distributorId);
   const address = useAddressLabel(profile?.address);
-  const { user } = useSession();
-  const isOwner = user?.id === distributorId;
+  const session = useSession();
+  const isOwner = session.user?.id === distributorId;
+  // Owner unknown while the session loads → no address row yet (avoids flashing the read-only row to the owner).
+  const showAddressRow = session.status !== 'loading' && !isOwner;
 
   if (isPending) {
     return (
@@ -75,7 +77,7 @@ export function DistributorProfileInfo({ distributorId, actions, className }: TD
         'Chưa cung cấp'
       ),
     },
-    ...(isOwner ? [] : [{ id: 'address', label: 'Địa chỉ', value: address }]),
+    ...(showAddressRow ? [{ id: 'address', label: 'Địa chỉ', value: address }] : []),
     {
       id: 'businessType',
       label: 'Lĩnh vực kinh doanh',
