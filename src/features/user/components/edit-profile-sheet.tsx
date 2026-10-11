@@ -1,7 +1,8 @@
+import { useEffect, useRef } from 'react';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSession, type TCurrentUser } from '@/features/auth';
-import { resolveMediaType, useUploadMedia, type TMediaFile } from '@/features/media';
+import { isMediaOfType, resolveMediaType, useUploadMedia, type TMediaFile, type TUploadedMedia } from '@/features/media';
 import { Button } from '@/shared/components/atoms';
 import { FilePickerField, FormInput, SelectField } from '@/shared/components/molecules';
 import { BUSINESS_TYPE_OPTIONS } from '@/shared/constants';
@@ -35,7 +36,8 @@ export type TEditProfileSheetProps = {
 /**
  * M6 — the logged-in distributor edits their profile: username, business type, bio, avatar (image), business license
  * (image or pdf). On save: upload the newly picked files to TMP, then PATCH /users/me with their keys. Unpicked files
- * are kept. Errors under the form; success → toast + close (profile and session refetch).
+ * are kept. Errors under the form; success → toast + close (profile and session refetch). A save that fails after the
+ * upload reuses the uploaded files on retry (no second upload of the same pick).
  */
 export function EditProfileSheet({ sheetRef, onClose }: TEditProfileSheetProps) {
   // react-hook-form's `formState` mutates one stable object — opt out of React Compiler memoization here.
@@ -45,6 +47,13 @@ export function EditProfileSheet({ sheetRef, onClose }: TEditProfileSheetProps) 
   const upload = useUploadMedia();
   const update = useUpdateMe(user?.id ?? '');
   const form = useAppForm<TEditProfileFormValues>({ schema: editProfileSchema, defaultValues: toFormValues(user) });
+  // Latest session user for the reset on dismiss (the refetch after a save lands just before the sheet closes).
+  const userRef = useRef(user);
+  useEffect(() => {
+    userRef.current = user;
+  });
+  // Picked file uri → its TMP upload, kept across failed saves of this opening.
+  const uploadedRef = useRef(new Map<string, TUploadedMedia>());
   const { errors } = form.formState;
   const values = form.watch();
   const isSaving = upload.isPending || update.isPending;
@@ -52,26 +61,36 @@ export function EditProfileSheet({ sheetRef, onClose }: TEditProfileSheetProps) 
   const setFile = (name: 'avatar' | 'bussinessLicense', file: TEditProfileFormValues['avatar']) =>
     form.setValue(name, file, { shouldDirty: true, shouldValidate: true });
 
-  const onSubmit = form.handleSubmit(async ({ avatar, bussinessLicense, username, bio, bussinessType }) => {
-    try {
-      const files: TMediaFile[] = [];
-      if (avatar) files.push({ file: avatar, type: AVATAR_MEDIA_TYPES[0] });
-      const licenseType = bussinessLicense && resolveMediaType(bussinessLicense.extension, LICENSE_MEDIA_TYPES);
-      if (bussinessLicense && licenseType) files.push({ file: bussinessLicense, type: licenseType });
-      const uploaded = await upload.mutateAsync(files);
+  // Built at press time (not during render): the submit reads `uploadedRef`.
+  const onSubmit = () =>
+    form.handleSubmit(async ({ avatar, bussinessLicense, username, bio, bussinessType }) => {
+      try {
+        const uploadedByUri = uploadedRef.current;
+        const files: TMediaFile[] = [];
+        if (avatar) files.push({ file: avatar, type: AVATAR_MEDIA_TYPES[0] });
+        const licenseType = bussinessLicense && resolveMediaType(bussinessLicense.extension, LICENSE_MEDIA_TYPES);
+        if (bussinessLicense && licenseType) files.push({ file: bussinessLicense, type: licenseType });
+        const toUpload = files.filter(({ file }) => !uploadedByUri.has(file.uri));
+        const uploaded = await upload.mutateAsync(toUpload);
+        toUpload.forEach(({ file }, index) => {
+          const media = uploaded[index];
+          if (media) uploadedByUri.set(file.uri, media);
+        });
 
-      const input: TUpdateProfileInput = { username, bio, bussinessType };
-      let next = 0;
-      if (avatar) input.avatar = uploaded[next++] as TUpdateProfileInput['avatar'];
-      if (bussinessLicense) input.bussinessLicense = uploaded[next] as TUpdateProfileInput['bussinessLicense'];
-      await update.mutateAsync(input);
+        const input: TUpdateProfileInput = { username, bio, bussinessType };
+        const avatarMedia = avatar && uploadedByUri.get(avatar.uri);
+        if (avatarMedia && isMediaOfType(avatarMedia, AVATAR_MEDIA_TYPES)) input.avatar = avatarMedia;
+        const licenseMedia = bussinessLicense && uploadedByUri.get(bussinessLicense.uri);
+        if (licenseMedia && isMediaOfType(licenseMedia, LICENSE_MEDIA_TYPES)) input.bussinessLicense = licenseMedia;
+        await update.mutateAsync(input);
 
-      toast.success('Đã cập nhật hồ sơ');
-      onClose();
-    } catch (error) {
-      applyServerErrors(form, error);
-    }
-  });
+        uploadedByUri.clear();
+        toast.success('Đã cập nhật hồ sơ');
+        onClose();
+      } catch (error) {
+        applyServerErrors(form, error);
+      }
+    })();
 
   return (
     <AppSheet
@@ -79,7 +98,10 @@ export function EditProfileSheet({ sheetRef, onClose }: TEditProfileSheetProps) 
       scrollable
       accessibilityLabel="Chỉnh sửa hồ sơ"
       // Next open starts from the saved profile (fresh after a save, unsaved edits dropped).
-      onDismiss={() => form.reset(toFormValues(user))}
+      onDismiss={() => {
+        uploadedRef.current.clear();
+        form.reset(toFormValues(userRef.current));
+      }}
     >
       <View style={{ paddingBottom: insets.bottom + 16 }} className="gap-4 px-4 pt-2">
         <Text accessibilityRole="header" className={TEXT.titleMedium}>

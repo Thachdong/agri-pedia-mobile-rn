@@ -4,12 +4,15 @@ import { useAddressLabel } from '@/features/location';
 import { Avatar, Button } from '@/shared/components/atoms';
 import { EmptyState, InfoTable, type TInfoTableItem } from '@/shared/components/molecules';
 import { BUSINESS_TYPE_LABELS } from '@/shared/constants';
-import { APP_ERROR_CODE, getErrorMessage, isAppError } from '@/shared/lib/http';
+import { getErrorMessage } from '@/shared/lib/http';
+import { toast } from '@/shared/lib/toast';
 import { cn } from '@/shared/lib/utils';
 import { colors, TEXT } from '@/shared/theme';
 import { useDistributorProfile } from '../hooks/use-distributor-profile';
+import { isDistributorNotFound } from '../utils/distributor-error.util';
 
-const NOT_FOUND_CODE = 'USER_DISTRIBUTOR_NOT_FOUND';
+const openLicense = (url: string) =>
+  Linking.openURL(url).catch(() => toast.error('Không mở được giấy phép. Vui lòng thử lại.'));
 
 export type TDistributorProfileInfoProps = {
   distributorId: string;
@@ -35,17 +38,13 @@ export function DistributorProfileInfo({ distributorId, actions, className }: TD
   }
 
   if (isError) {
-    const notFound = isAppError(error) && (error.code === NOT_FOUND_CODE || error.status === 404);
+    const notFound = isDistributorNotFound(error);
     return (
       <EmptyState
         icon={notFound ? 'person-remove-outline' : 'alert-circle-outline'}
         title={notFound ? 'Không tìm thấy nhà phân phối' : 'Không tải được thông tin'}
         description={notFound ? 'Tài khoản không tồn tại hoặc chưa được kích hoạt.' : getErrorMessage(error)}
-        action={
-          notFound || (isAppError(error) && error.code === APP_ERROR_CODE.VALIDATION_ERROR) ? undefined : (
-            <Button label="Thử lại" variant="outline" size="sm" onPress={() => void refetch()} />
-          )
-        }
+        action={notFound ? undefined : <Button label="Thử lại" variant="outline" size="sm" onPress={() => void refetch()} />}
         className={className}
       />
     );
@@ -61,7 +60,7 @@ export function DistributorProfileInfo({ distributorId, actions, className }: TD
         <Pressable
           accessibilityRole="link"
           accessibilityHint="Mở giấy phép kinh doanh"
-          onPress={() => void Linking.openURL(license)}
+          onPress={() => void openLicense(license)}
           hitSlop={8}
           className="min-h-11 justify-center"
         >

@@ -6,6 +6,7 @@ import { distributorProfile } from '../test/distributor.fixtures';
 import { DistributorProfileTabs } from './distributor-profile-tabs';
 
 jest.mock('../services/distributor-profile.service');
+jest.mock('@/shared/lib/toast', () => ({ toast: { error: jest.fn() } }));
 jest.mock('./distributor-profile-actions', () => ({ DistributorProfileActions: () => null }));
 jest.mock('@/features/location', () => ({ useAddressLabel: () => null }));
 jest.mock('@/features/auth', () => ({ useSession: jest.fn() }));

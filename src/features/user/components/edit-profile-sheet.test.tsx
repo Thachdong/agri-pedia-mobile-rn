@@ -79,4 +79,25 @@ describe('EditProfileSheet', () => {
     expect(await screen.findByText('Không tìm thấy tài khoản.')).toBeOnTheScreen();
     expect(onClose).not.toHaveBeenCalled();
   });
+
+  it('PATCH failed after upload → retry reuses the uploaded file (no second upload)', async () => {
+    jest.mocked(pickImage).mockResolvedValue({ uri: 'file:///a.jpg', name: 'a.jpg', mimeType: 'image/jpeg', size: 10, extension: 'jpg' });
+    const avatar = { type: 'IMAGE', key: 'tmp/a', extension: 'jpg', filename: 'a.jpg' };
+    upload.mockResolvedValueOnce([avatar]).mockResolvedValueOnce([]);
+    jest
+      .mocked(updateMe)
+      .mockRejectedValueOnce(new AppError({ status: 0, code: 'NETWORK_ERROR', message: 'x' }))
+      .mockResolvedValueOnce({} as never);
+    await renderSheet();
+    await fireEvent.press(screen.getByRole('button', { name: 'Chọn Ảnh đại diện' }));
+    await screen.findByText('a.jpg');
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Lưu' }));
+    expect(await screen.findByText('Không có kết nối mạng. Vui lòng kiểm tra và thử lại.')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Lưu' }));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(upload).toHaveBeenNthCalledWith(2, []);
+    expect(updateMe).toHaveBeenLastCalledWith(expect.objectContaining({ avatar }));
+  });
 });
