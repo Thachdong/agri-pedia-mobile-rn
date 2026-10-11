@@ -1,9 +1,12 @@
 import { appInfiniteQueryOptions, appQueryOptions, queryKeys } from '@/shared/lib/query';
-import { getDistributorReviews } from '../services/review.service';
+import { getDistributorReviews, getProductReviews, getReviewSummary } from '../services/review.service';
 import type {
   TDistributorReview,
   TDistributorReviewsParams,
   TFindDistributorReviewParams,
+  TReviewSummary,
+  TReviewSummaryParams,
+  TReviewSummaryResponse,
 } from '../types/review.types';
 
 export const REVIEWS_PAGE_SIZE = 20;
@@ -45,5 +48,37 @@ export const findDistributorReviewQuery = ({ distributorId, reviewId }: TFindDis
       return null;
     },
     staleTime: Infinity,
+    meta: { silent: true },
+  });
+
+/** Reviews of one product, newest first, cursor pages. `silent`: the list shows errors inline. */
+export const productReviewsQuery = (productId: string) =>
+  appInfiniteQueryOptions({
+    queryKey: queryKeys.reviews.product(productId),
+    queryFn: ({ pageParam, signal }) => getProductReviews(productId, { cursor: pageParam, limit: REVIEWS_PAGE_SIZE }, signal),
+    meta: { silent: true },
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (page) => page.nextCursor ?? undefined,
+  });
+
+/** Flat star counts → the `TReviewSummary` shape of GET /reviews, so one RatingSummary renders both. */
+export const toReviewSummary = ({ avgRating, reviewCount, ...counts }: TReviewSummaryResponse): TReviewSummary => ({
+  avgRating,
+  reviewCount,
+  starCounts: {
+    1: counts.oneStarCount,
+    2: counts.twoStarCount,
+    3: counts.threeStarCount,
+    4: counts.fourStarCount,
+    5: counts.fiveStarCount,
+  },
+});
+
+/** Rating of a product (or a distributor itself). `silent`: the panel shows errors inline. */
+export const reviewSummaryQuery = ({ targetType, targetId }: TReviewSummaryParams) =>
+  appQueryOptions({
+    queryKey: queryKeys.reviews.summary(targetType, targetId),
+    queryFn: ({ signal }) => getReviewSummary({ targetType, targetId }, signal),
+    select: toReviewSummary,
     meta: { silent: true },
   });
