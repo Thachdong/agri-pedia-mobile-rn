@@ -8,6 +8,7 @@ export { useSetMyPrimaryAddress } from './hooks/use-set-my-primary-address';
 export { useUpdateMe } from './hooks/use-update-me';
 export { myAddressesQuery } from './hooks/user.queries';
 export type {
+  TCreateAddressFormValues,
   TCreateAddressInput,
   TCreateAddressResponse,
   TEditProfileFormValues,

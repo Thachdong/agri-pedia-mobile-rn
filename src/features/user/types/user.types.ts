@@ -1,3 +1,4 @@
+import type { TAddressFieldsValue } from '@/features/location';
 import type { TPickedFile } from '@/shared/lib/device';
 import type { TApiSchema } from '@/shared/lib/http';
 
@@ -23,3 +24,6 @@ export type TMyAddress = TApiSchema<'MyAddressResponse'>;
 /** POST /users/me/addresses — `isPrimary` defaults to false. */
 export type TCreateAddressInput = TApiSchema<'CreateAddressDto'>;
 export type TCreateAddressResponse = TApiSchema<'CreateAddressResponse'>;
+
+/** Add address form (M7) — lat / long missing until a position is picked on the map. */
+export type TCreateAddressFormValues = TAddressFieldsValue;
