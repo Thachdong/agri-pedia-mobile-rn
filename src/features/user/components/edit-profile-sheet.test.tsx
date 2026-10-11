@@ -100,4 +100,19 @@ describe('EditProfileSheet', () => {
     expect(upload).toHaveBeenNthCalledWith(2, []);
     expect(updateMe).toHaveBeenLastCalledWith(expect.objectContaining({ avatar }));
   });
+
+  it('FARMER → no business type / license fields; PATCH without bussinessType', async () => {
+    jest.mocked(useSession).mockReturnValue(authenticatedSession({ id: 'f1', role: 'FARMER', username: 'Bác Ba', bio: null }));
+    upload.mockResolvedValue([]);
+    await renderSheet();
+    expect(screen.queryByText('Lĩnh vực kinh doanh')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Chọn Giấy phép kinh doanh' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Chọn Ảnh đại diện' })).toBeOnTheScreen();
+
+    await fireEvent.changeText(screen.getByLabelText('Giới thiệu'), 'Trồng lúa');
+    await fireEvent.press(screen.getByRole('button', { name: 'Lưu' }));
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(updateMe).toHaveBeenCalledWith({ username: 'Bác Ba', bio: 'Trồng lúa' });
+  });
 });

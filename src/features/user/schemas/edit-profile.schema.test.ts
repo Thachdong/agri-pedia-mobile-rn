@@ -1,5 +1,5 @@
 import type { TEditProfileFormValues } from '../types/user.types';
-import { editProfileSchema } from './edit-profile.schema';
+import { editProfileSchema, getEditProfileSchema } from './edit-profile.schema';
 
 const valid: TEditProfileFormValues = {
   username: 'Đại lý',
@@ -37,5 +37,29 @@ describe('editProfileSchema', () => {
     expect(errorPaths({ bussinessLicense: file('docx') })).toContain('bussinessLicense.extension');
     expect(errorPaths({ avatar: file('jpg', 10 * 1024 * 1024 + 1) })).toContain('avatar.size');
     expect(errorPaths({ avatar: file('jpg', null) })).toEqual([]);
+  });
+});
+
+describe('getEditProfileSchema', () => {
+  const farmer: TEditProfileFormValues = { ...valid, bussinessType: null };
+  const farmerErrors = (values: Partial<TEditProfileFormValues>) =>
+    getEditProfileSchema('FARMER')
+      .validate({ ...farmer, ...values }, { abortEarly: false })
+      .error?.details.map((d) => d.path.join('.')) ?? [];
+
+  it('DISTRIBUTOR → the distributor schema', () => {
+    expect(getEditProfileSchema('DISTRIBUTOR')).toBe(editProfileSchema);
+  });
+
+  it('FARMER: no business type needed; username / bio / avatar rules kept', () => {
+    expect(farmerErrors({})).toEqual([]);
+    expect(farmerErrors({ username: ' ' })).toContain('username');
+    expect(farmerErrors({ bio: 'a'.repeat(1001) })).toContain('bio');
+    expect(farmerErrors({ avatar: file('pdf') })).toContain('avatar.extension');
+  });
+
+  it('FARMER: business type / license must stay empty', () => {
+    expect(farmerErrors({ bussinessType: 'SEEDS_SEEDLINGS' })).toContain('bussinessType');
+    expect(farmerErrors({ bussinessLicense: file('pdf') })).toContain('bussinessLicense');
   });
 });
