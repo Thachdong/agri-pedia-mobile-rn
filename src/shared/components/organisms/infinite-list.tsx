@@ -35,8 +35,13 @@ export type TInfiniteListProps<T> = {
   emptyTitle: string;
   emptyDescription?: string;
   emptyIcon?: TIconName;
-  /** Above the items (e.g. a note on the result); hidden while loading / on error. */
+  /** Above the items (e.g. a note on the result); hidden while loading / on error unless `keepHeader`. */
   header?: ReactElement | null;
+  /**
+   * The header stays while the first page loads / fails — loading and error show below it (e.g. a profile whose info
+   * is the list header). Pull-to-refresh also works then.
+   */
+  keepHeader?: boolean;
   className?: string;
   contentContainerClassName?: string;
   accessibilityLabel?: string;
@@ -59,6 +64,7 @@ export function InfiniteList<T>({
   emptyDescription,
   emptyIcon = 'file-tray-outline',
   header,
+  keepHeader = false,
   className,
   contentContainerClassName,
   accessibilityLabel,
@@ -108,25 +114,24 @@ export function InfiniteList<T>({
     }
   }, [refetch]);
 
-  if (isPending) {
-    return (
-      <View className={cn('flex-1 items-center justify-center py-8', className)} accessibilityLabel="Đang tải">
-        <ActivityIndicator color={colors.primary} />
-      </View>
-    );
-  }
+  const loadingView = (
+    <View className={cn('flex-1 items-center justify-center py-8', !keepHeader && className)} accessibilityLabel="Đang tải">
+      <ActivityIndicator color={colors.primary} />
+    </View>
+  );
+  const errorView = (
+    <EmptyState
+      icon="alert-circle-outline"
+      title="Không tải được dữ liệu"
+      description={getErrorMessage(error)}
+      action={<Button label="Thử lại" variant="outline" size="sm" onPress={() => void refetch()} />}
+      className={keepHeader ? undefined : className}
+    />
+  );
 
-  if (isError) {
-    return (
-      <EmptyState
-        icon="alert-circle-outline"
-        title="Không tải được dữ liệu"
-        description={getErrorMessage(error)}
-        action={<Button label="Thử lại" variant="outline" size="sm" onPress={() => void refetch()} />}
-        className={className}
-      />
-    );
-  }
+  if (!keepHeader && isPending) return loadingView;
+  if (!keepHeader && isError) return errorView;
+  const firstPageState = isPending ? loadingView : isError ? errorView : null;
 
   const footer = isFetchingNextPage ? (
     <View className="items-center py-4" accessibilityLabel="Đang tải thêm">
@@ -142,11 +147,13 @@ export function InfiniteList<T>({
   return (
     <FlatList
       ref={listRef}
-      data={items}
+      data={firstPageState ? [] : items}
       keyExtractor={keyExtractor}
       renderItem={({ item, index }) => renderItem(item, index)}
       ListHeaderComponent={header}
-      ListEmptyComponent={<EmptyState icon={emptyIcon} title={emptyTitle} description={emptyDescription} />}
+      ListEmptyComponent={
+        firstPageState ?? <EmptyState icon={emptyIcon} title={emptyTitle} description={emptyDescription} />
+      }
       ListFooterComponent={footer}
       onEndReached={onEndReached}
       onEndReachedThreshold={END_REACHED_THRESHOLD}

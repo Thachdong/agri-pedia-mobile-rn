@@ -9,7 +9,8 @@ import {
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet';
 import { cssInterop } from 'nativewind';
-import { useCallback, useMemo, useRef, type ComponentRef, type ReactNode } from 'react';
+import { useCallback, useMemo, useRef, type ComponentRef, type ComponentType, type ReactNode, type Ref } from 'react';
+import type { TextInput, TextInputProps } from 'react-native';
 
 type TSheetRef = ComponentRef<typeof BottomSheetModal>;
 
@@ -88,8 +89,13 @@ export function useAppSheet() {
 // Third-party component → NativeWind needs an interop to turn `className` into `style`.
 cssInterop(BottomSheetTextInput, { className: 'style' });
 
-/** TextInput for use inside an AppSheet (keeps the sheet above the keyboard). Takes `className`. */
-export const AppSheetTextInput = BottomSheetTextInput;
+/**
+ * TextInput for use inside an AppSheet (keeps the sheet above the keyboard). Takes `className`.
+ * Typed as a plain TextInput (its ref is `TextInput | undefined` upstream) so it fits the `Input` atom's `as` prop.
+ */
+export const AppSheetTextInput = BottomSheetTextInput as unknown as ComponentType<
+  TextInputProps & { ref?: Ref<TextInput>; className?: string }
+>;
 
 /** FlatList for long lists inside an AppSheet with `snapPoints` (not `scrollable`, not dynamic sizing) — container `flex-1`. */
 export const AppSheetFlatList = BottomSheetFlatList;

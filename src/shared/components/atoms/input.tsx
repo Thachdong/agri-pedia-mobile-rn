@@ -1,4 +1,4 @@
-import { useState, type Ref } from 'react';
+import { useState, type ComponentType, type Ref } from 'react';
 import { TextInput } from 'react-native';
 import { cn } from '@/shared/lib/utils';
 import { colors } from '@/shared/theme';
@@ -8,14 +8,26 @@ export type TInputProps = React.ComponentProps<typeof TextInput> & {
   /** Error state (red border); the message itself is rendered by the field molecule. */
   invalid?: boolean;
   className?: string;
+  /** Inside a bottom sheet pass `AppSheetTextInput` (keeps the sheet above the keyboard). Default: TextInput. */
+  as?: ComponentType<React.ComponentProps<typeof TextInput> & { ref?: Ref<TextInput>; className?: string }>;
 };
 
 /** Text input styled with tokens. `multiline` → textarea (bio). Focus border, error border, disabled look. */
-export function Input({ ref, invalid, multiline, editable = true, className, onFocus, onBlur, ...props }: TInputProps) {
+export function Input({
+  ref,
+  invalid,
+  multiline,
+  editable = true,
+  className,
+  onFocus,
+  onBlur,
+  as: Component = TextInput,
+  ...props
+}: TInputProps) {
   const [focused, setFocused] = useState(false);
 
   return (
-    <TextInput
+    <Component
       ref={ref}
       multiline={multiline}
       editable={editable}
