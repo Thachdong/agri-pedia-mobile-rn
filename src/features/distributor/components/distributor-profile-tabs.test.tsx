@@ -10,6 +10,17 @@ jest.mock('@/shared/lib/toast', () => ({ toast: { error: jest.fn() } }));
 jest.mock('./distributor-profile-actions', () => ({ DistributorProfileActions: () => null }));
 jest.mock('@/features/location', () => ({ useAddressLabel: () => null }));
 jest.mock('@/features/auth', () => ({ useSession: jest.fn() }));
+jest.mock('./distributor-products-tab', () => {
+  const { Text: MockText } = jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    DistributorProductsTab: ({ header }: { header: React.ReactNode }) => (
+      <>
+        {header}
+        <MockText>PRODUCTS_TAB</MockText>
+      </>
+    ),
+  };
+});
 jest.mock('@/features/review', () => {
   const { Text: MockText } = jest.requireActual<typeof import('react-native')>('react-native');
   return {
@@ -32,7 +43,7 @@ describe('DistributorProfileTabs', () => {
     jest.mocked(getDistributorProfile).mockResolvedValue(distributorProfile());
     await renderWithProviders(<DistributorProfileTabs distributorId="d1" />);
     expect(await screen.findByRole('tab', { name: 'Sản Phẩm' })).toBeSelected();
-    expect(screen.getByText('Chưa có sản phẩm')).toBeOnTheScreen();
+    expect(screen.getByText('PRODUCTS_TAB')).toBeOnTheScreen();
     expect(screen.getByRole('header', { name: 'Đại lý Minh Phát' })).toBeOnTheScreen();
   });
 
@@ -42,7 +53,7 @@ describe('DistributorProfileTabs', () => {
     await fireEvent.press(await screen.findByRole('tab', { name: 'Đánh giá' }));
     expect(screen.getByText('REVIEWS_PANEL')).toBeOnTheScreen();
     expect(screen.getByRole('header', { name: 'Đại lý Minh Phát' })).toBeOnTheScreen();
-    expect(screen.queryByText('Chưa có sản phẩm')).toBeNull();
+    expect(screen.queryByText('PRODUCTS_TAB')).toBeNull();
   });
 
   it('profile failed → no tabs', async () => {
