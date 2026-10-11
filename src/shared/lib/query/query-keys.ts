@@ -40,6 +40,14 @@ export const queryKeys = {
     all: ['notifications'] as const,
     list: () => [...queryKeys.notifications.all, 'list'] as const,
   },
+  products: {
+    all: ['products'] as const,
+    /** ACTIVE products of one shop (infinite, cursor) — tab "Sản Phẩm". */
+    list: (distributorId: string) => [...queryKeys.products.all, 'list', distributorId] as const,
+    /** One product (GET /products/{id}) — detail page + edit form. */
+    detail: (productId: string) => [...queryKeys.products.all, 'detail', productId] as const,
+    categories: () => [...queryKeys.products.all, 'categories'] as const,
+  },
   reviews: {
     all: ['reviews'] as const,
     /** Prefix of every review query of one shop — a new review of the shop makes all of them stale. */

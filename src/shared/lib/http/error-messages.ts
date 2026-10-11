@@ -84,6 +84,10 @@ const MESSAGES: Record<string, string> = {
   // Notification
   NOTIFICATION_INVALID_CURSOR: 'Không tải được thêm thông báo. Vui lòng tải lại.',
   NOTIFICATION_NOT_FOUND: 'Không tìm thấy thông báo.',
+  // Product
+  PRODUCT_INVALID_CURSOR: 'Không tải được thêm sản phẩm. Vui lòng tải lại.',
+  PRODUCT_DISTRIBUTOR_NOT_FOUND: 'Không tìm thấy nhà phân phối.',
+  PRODUCT_NOT_FOUND: 'Sản phẩm không còn tồn tại.',
   // Review
   REVIEW_INVALID_CURSOR: 'Không tải được thêm đánh giá. Vui lòng tải lại.',
   REVIEW_DISTRIBUTOR_NOT_FOUND: 'Không tìm thấy nhà phân phối.',
