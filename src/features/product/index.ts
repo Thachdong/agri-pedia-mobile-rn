@@ -1,4 +1,6 @@
 // Public API of the `product` feature. Other features and src/app import only this file.
+export { ProductCard, type TProductCardProps } from './components/product-card';
+export { ProductFormSheet, type TProductFormSheetProps } from './components/product-form-sheet';
 export { categoriesQuery, distributorProductsQuery, productDetailQuery } from './hooks/product.queries';
 export { useCategories } from './hooks/use-categories';
 export { useCreateProduct } from './hooks/use-create-product';
