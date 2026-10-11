@@ -59,6 +59,9 @@ const MESSAGES: Record<string, string> = {
   USER_BUSINESS_TYPE_NOT_ALLOWED: 'Nông dân không cần chọn loại hình kinh doanh.',
   USER_NOT_FOUND: 'Không tìm thấy tài khoản.',
   USER_DISTRIBUTOR_NOT_FOUND: 'Không tìm thấy nhà phân phối.',
+  // Addresses
+  USER_ADDRESS_NOT_FOUND: 'Địa chỉ không còn tồn tại.',
+  USER_ADDRESS_PRIMARY_NOT_DELETABLE: 'Không thể xoá địa chỉ mặc định. Hãy chọn địa chỉ khác làm mặc định trước.',
   // Media
   MEDIA_INVALID_EXTENSION: 'Định dạng tệp không được hỗ trợ.',
   // OTP (activate, resend, reset-password, change-password)

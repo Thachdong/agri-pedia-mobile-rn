@@ -19,6 +19,8 @@ export const queryKeys = {
   users: {
     all: ['users'] as const,
     me: () => [...queryKeys.users.all, 'me'] as const,
+    /** Every address of the caller (GET /users/me/addresses). */
+    addresses: () => [...queryKeys.users.all, 'addresses'] as const,
   },
   location: {
     all: ['location'] as const,
@@ -27,7 +29,9 @@ export const queryKeys = {
   },
   distributors: {
     all: ['distributors'] as const,
-    nearby: (params: TNearbyDistributorsParams) => [...queryKeys.distributors.all, 'nearby', params] as const,
+    /** Prefix of every nearby search — the caller's primary address is the search center. */
+    nearbyLists: () => [...queryKeys.distributors.all, 'nearby'] as const,
+    nearby: (params: TNearbyDistributorsParams) => [...queryKeys.distributors.nearbyLists(), params] as const,
     /** Public profile of one distributor (GET /distributors/{id}). */
     detail: (distributorId: string) => [...queryKeys.distributors.all, 'detail', distributorId] as const,
   },

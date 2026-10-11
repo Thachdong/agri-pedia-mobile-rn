@@ -16,3 +16,10 @@ export type TEditProfileFormValues = {
   avatar: TPickedFile | null;
   bussinessLicense: TPickedFile | null;
 };
+
+/** GET /users/me/addresses — primary first; `province` / `ward` are codenames. */
+export type TMyAddressesResponse = TApiSchema<'ListMyAddressesResponse'>;
+export type TMyAddress = TApiSchema<'MyAddressResponse'>;
+/** POST /users/me/addresses — `isPrimary` defaults to false. */
+export type TCreateAddressInput = TApiSchema<'CreateAddressDto'>;
+export type TCreateAddressResponse = TApiSchema<'CreateAddressResponse'>;
