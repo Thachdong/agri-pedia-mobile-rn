@@ -4,7 +4,7 @@ import { AppError } from '@/shared/lib/http';
 import { toast } from '@/shared/lib/toast';
 import { renderWithProviders } from '@/test-utils';
 import { createReview } from '../services/review.service';
-import { ReviewShopSheet, type TReviewShopSheetProps } from './review-shop-sheet';
+import { ReviewSheet, type TReviewSheetProps } from './review-sheet';
 
 jest.mock('../services/review.service');
 jest.mock('@/shared/lib/toast', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
@@ -12,11 +12,12 @@ jest.mock('@/shared/lib/toast', () => ({ toast: { success: jest.fn(), error: jes
 const onClose = jest.fn();
 const renderSheet = () =>
   renderWithProviders(
-    <ReviewShopSheet
-      sheetRef={createRef() as TReviewShopSheetProps['sheetRef']}
+    <ReviewSheet
+      sheetRef={createRef() as TReviewSheetProps['sheetRef']}
       onClose={onClose}
-      distributorId="d1"
-      shopName="Đại lý Minh Phát"
+      targetType="USER"
+      targetId="d1"
+      targetName="Đại lý Minh Phát"
     />,
   );
 
@@ -26,7 +27,7 @@ const fillAndSubmit = async () => {
   await fireEvent.press(screen.getByRole('button', { name: 'Gửi đánh giá' }));
 };
 
-describe('ReviewShopSheet', () => {
+describe('ReviewSheet', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('no star → schema message, nothing sent', async () => {

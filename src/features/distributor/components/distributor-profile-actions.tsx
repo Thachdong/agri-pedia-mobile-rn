@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 import { LoginRequiredSheet, useSession } from '@/features/auth';
-import { ReviewShopSheet, useDistributorReviews } from '@/features/review';
+import { ReviewSheet, useDistributorReviews } from '@/features/review';
 import { EditProfileSheet } from '@/features/user';
 import { Button } from '@/shared/components/atoms';
 import { ROUTES } from '@/shared/constants';
@@ -55,11 +55,12 @@ export function DistributorProfileActions({ distributorId, className }: TDistrib
         onPress={onReview}
       />
       {user ? (
-        <ReviewShopSheet
+        <ReviewSheet
           sheetRef={reviewSheet.ref}
           onClose={reviewSheet.close}
-          distributorId={distributorId}
-          shopName={profile?.username ?? 'shop'}
+          targetType="USER"
+          targetId={distributorId}
+          targetName={profile?.username ?? 'shop'}
         />
       ) : (
         <LoginRequiredSheet

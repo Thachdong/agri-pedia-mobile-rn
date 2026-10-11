@@ -10,7 +10,7 @@ const mockPush = jest.fn();
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }), usePathname: () => '/profile/d1' }));
 jest.mock('../services/distributor-profile.service');
 jest.mock('@/features/auth', () => ({ useSession: jest.fn(), LoginRequiredSheet: () => null }));
-jest.mock('@/features/review', () => ({ useDistributorReviews: jest.fn(), ReviewShopSheet: () => null }));
+jest.mock('@/features/review', () => ({ useDistributorReviews: jest.fn(), ReviewSheet: () => null }));
 jest.mock('@/features/user', () => ({ EditProfileSheet: () => null }));
 
 /** No argument → guest; `{}` → FARMER u1. */

@@ -1,5 +1,6 @@
 // Public API of the `review` feature. Other features and src/app import only this file.
-export { ReviewShopSheet, type TReviewShopSheetProps } from './components/review-shop-sheet';
+export { ProductReviewsPanel, type TProductReviewsPanelProps } from './components/product-reviews-panel';
+export { ReviewSheet, type TReviewSheetProps } from './components/review-sheet';
 export { ShopReviewsPanel, type TShopReviewsPanelProps } from './components/shop-reviews-panel';
 export {
   distributorReviewsQuery,

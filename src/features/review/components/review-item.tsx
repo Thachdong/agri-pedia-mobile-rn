@@ -7,8 +7,13 @@ import { formatRelativeTime } from '@/shared/utils';
 import { REVIEW_UNKNOWN_USER_NAME } from '../constants/review.constants';
 import type { TDistributorReview } from '../types/review.types';
 
+/** What a row shows — a shop list review (with `productName`) or a product review (no tag). */
+export type TReviewItemData = Pick<TDistributorReview, 'user' | 'star' | 'content' | 'createdAt'> & {
+  productName?: string | null;
+};
+
 export type TReviewItemProps = {
-  review: TDistributorReview;
+  review: TReviewItemData;
   /** Written by the logged-in user → highlighted + "Đánh giá của bạn". */
   isMine?: boolean;
   /** One reference time for the whole list. */

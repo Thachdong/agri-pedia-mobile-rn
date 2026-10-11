@@ -7,27 +7,32 @@ import { AppSheet, AppSheetTextInput, type TAppSheetProps } from '@/shared/lib/s
 import { toast } from '@/shared/lib/toast';
 import { cn } from '@/shared/lib/utils';
 import { TEXT } from '@/shared/theme';
-import { REVIEW_CONTENT_MAX, REVIEW_SHOP_CONTENT_PLACEHOLDER } from '../constants/review.constants';
+import { REVIEW_CONTENT_MAX, REVIEW_CONTENT_PLACEHOLDER } from '../constants/review.constants';
 import { useCreateReview } from '../hooks/use-create-review';
 import { reviewSchema } from '../schemas/review.schema';
-import type { TReviewFormValues } from '../types/review.types';
+import type { TReviewFormValues, TReviewTargetType } from '../types/review.types';
 
 const DEFAULT_VALUES: TReviewFormValues = { star: 0, content: '' };
 
-export type TReviewShopSheetProps = {
+const SHEET_LABEL: Record<TReviewTargetType, string> = { USER: 'Đánh giá shop', PRODUCT: 'Đánh giá sản phẩm' };
+
+export type TReviewSheetProps = {
   /** From `useAppSheet()` of the opener. */
   sheetRef: TAppSheetProps['sheetRef'];
   onClose: () => void;
-  distributorId: string;
-  /** Shop name in the title. */
-  shopName: string;
+  /** USER = the shop (M4), PRODUCT = one of its products (M5). */
+  targetType: TReviewTargetType;
+  /** Distributor id (USER) or product id (PRODUCT). */
+  targetId: string;
+  /** Shop / product name in the title. */
+  targetName: string;
 };
 
 /**
- * M4 — review a shop (ACTIVE FARMER): 1..5 stars + content. Server errors (409 already reviewed, 403 not allowed...)
- * under the form. Success → toast, reset, close (the reviews tab refetches).
+ * M4 / M5 — review a shop or a product (ACTIVE FARMER): 1..5 stars + content. Server errors (409 already reviewed,
+ * 403 not allowed, 422 product not on sale...) under the form. Success → toast, reset, close (the review lists refetch).
  */
-export function ReviewShopSheet({ sheetRef, onClose, distributorId, shopName }: TReviewShopSheetProps) {
+export function ReviewSheet({ sheetRef, onClose, targetType, targetId, targetName }: TReviewSheetProps) {
   // react-hook-form's `formState` mutates one stable object — opt out of React Compiler memoization here.
   'use no memo';
   const insets = useSafeAreaInsets();
@@ -37,7 +42,7 @@ export function ReviewShopSheet({ sheetRef, onClose, distributorId, shopName }: 
 
   const onSubmit = form.handleSubmit(async (values) => {
     try {
-      await create.mutateAsync({ targetType: 'USER', targetId: distributorId, ...values });
+      await create.mutateAsync({ targetType, targetId, ...values });
       toast.success('Đã gửi đánh giá');
       form.reset(DEFAULT_VALUES);
       onClose();
@@ -47,10 +52,10 @@ export function ReviewShopSheet({ sheetRef, onClose, distributorId, shopName }: 
   });
 
   return (
-    <AppSheet sheetRef={sheetRef} scrollable accessibilityLabel="Đánh giá shop" onDismiss={() => form.clearErrors()}>
+    <AppSheet sheetRef={sheetRef} scrollable accessibilityLabel={SHEET_LABEL[targetType]} onDismiss={() => form.clearErrors()}>
       <View style={{ paddingBottom: insets.bottom + 16 }} className="gap-4 px-4 pt-2">
         <Text accessibilityRole="header" numberOfLines={2} className={TEXT.titleMedium}>
-          Đánh giá {shopName}
+          Đánh giá {targetName}
         </Text>
         <FormField
           control={form.control}
@@ -73,7 +78,7 @@ export function ReviewShopSheet({ sheetRef, onClose, distributorId, shopName }: 
               required
               multiline
               maxLength={REVIEW_CONTENT_MAX}
-              placeholder={REVIEW_SHOP_CONTENT_PLACEHOLDER}
+              placeholder={REVIEW_CONTENT_PLACEHOLDER[targetType]}
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
