@@ -56,4 +56,22 @@ describe('ReviewSheet', () => {
     expect(await screen.findByText('Bạn đã đánh giá rồi.')).toBeOnTheScreen();
     expect(onClose).not.toHaveBeenCalled();
   });
+
+  it('PRODUCT target → product title, POST PRODUCT review', async () => {
+    jest.mocked(createReview).mockResolvedValue({ reviewId: 'rv2' });
+    await renderWithProviders(
+      <ReviewSheet
+        sheetRef={createRef() as TReviewSheetProps['sheetRef']}
+        onClose={onClose}
+        targetType="PRODUCT"
+        targetId="p1"
+        targetName="Lúa giống OM18"
+      />,
+    );
+    expect(screen.getByRole('header', { name: 'Đánh giá Lúa giống OM18' })).toBeOnTheScreen();
+    await fillAndSubmit();
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(createReview).toHaveBeenCalledWith({ targetType: 'PRODUCT', targetId: 'p1', star: 4, content: 'Giao nhanh' });
+  });
 });
+

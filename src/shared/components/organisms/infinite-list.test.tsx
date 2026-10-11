@@ -86,4 +86,23 @@ describe('InfiniteList', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Thử lại' }));
     expect(q.fetchNextPage).toHaveBeenCalledTimes(1);
   });
+
+  it('numColumns → grid rows', async () => {
+    await render(
+      <InfiniteList
+        query={query()}
+        items={ROWS}
+        keyExtractor={(row) => row.id}
+        renderItem={(row) => <Text>{row.name}</Text>}
+        emptyTitle="Không có gì"
+        numColumns={2}
+        accessibilityLabel="Lưới"
+      />,
+    );
+    // Grid: both items sit in one row view (a plain list gives each its own cell).
+    const rowOf = (name: string) => screen.getByText(name).parent;
+    expect(rowOf('Hàng A')).toBe(rowOf('Hàng B'));
+    expect(rowOf('Hàng A')).toBeTruthy();
+  });
 });
+
