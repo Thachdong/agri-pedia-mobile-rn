@@ -12,3 +12,13 @@ export type TDistributorReviewsParams = Omit<TDistributorReviewsQuery, 'cursor' 
 
 /** Look up one review of a shop by id (no GET /reviews/{id}) — e.g. from a REVIEW notification's `referenceId`. */
 export type TFindDistributorReviewParams = { distributorId: string; reviewId: string };
+
+/** Shop rating over every review of the shop (shop + products) — not affected by filters / cursor. */
+export type TReviewSummary = TApiSchema<'ReviewSummaryResponse'>;
+
+/** All loaded pages merged — summary from the first page (the server returns it on every page). */
+export type TDistributorReviewsView = { summary: TReviewSummary; reviews: TDistributorReview[] };
+
+/** POST /reviews — USER: `targetId` = distributor id; PRODUCT: product id. */
+export type TCreateReviewInput = TApiSchema<'CreateReviewDto'>;
+export type TCreateReviewResponse = TApiSchema<'CreateReviewResponse'>;

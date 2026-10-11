@@ -1,6 +1,23 @@
-import { appQueryOptions, queryKeys } from '@/shared/lib/query';
+import { appInfiniteQueryOptions, appQueryOptions, queryKeys } from '@/shared/lib/query';
 import { getDistributorReviews } from '../services/review.service';
-import type { TDistributorReview, TFindDistributorReviewParams } from '../types/review.types';
+import type {
+  TDistributorReview,
+  TDistributorReviewsParams,
+  TFindDistributorReviewParams,
+} from '../types/review.types';
+
+export const REVIEWS_PAGE_SIZE = 20;
+
+/** Shop + product reviews of a shop, newest first, cursor pages. `silent`: the list shows errors inline. */
+export const distributorReviewsQuery = (params: TDistributorReviewsParams) =>
+  appInfiniteQueryOptions({
+    queryKey: queryKeys.reviews.list(params),
+    queryFn: ({ pageParam, signal }) =>
+      getDistributorReviews({ ...params, cursor: pageParam, limit: REVIEWS_PAGE_SIZE }, signal),
+    meta: { silent: true },
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (page) => page.nextCursor ?? undefined,
+  });
 
 /** Lookup pages: a review referenced by a notification is recent, so it is almost always on page 1. */
 const FIND_REVIEW_PAGE_SIZE = 50;

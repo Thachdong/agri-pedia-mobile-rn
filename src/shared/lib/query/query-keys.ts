@@ -1,4 +1,5 @@
 import type { TNearbyDistributorsParams } from '@/features/distributor';
+import type { TDistributorReviewsParams } from '@/features/review';
 
 /**
  * CENTRAL registry of query keys — the only place keys are written (same names as the web client).
@@ -43,6 +44,9 @@ export const queryKeys = {
     all: ['reviews'] as const,
     /** Prefix of every review query of one shop — a new review of the shop makes all of them stale. */
     distributor: (distributorId: string) => [...queryKeys.reviews.all, 'distributor', distributorId] as const,
+    /** Shop + product reviews of a shop by filter (infinite, cursor) — tab "Đánh giá". */
+    list: ({ distributorId, ...filters }: TDistributorReviewsParams) =>
+      [...queryKeys.reviews.distributor(distributorId), 'list', filters] as const,
     /** One review of the shop looked up by id (REVIEW notification → its target). */
     find: (distributorId: string, reviewId: string) =>
       [...queryKeys.reviews.distributor(distributorId), 'find', reviewId] as const,

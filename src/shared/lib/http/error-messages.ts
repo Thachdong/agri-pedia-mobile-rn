@@ -87,4 +87,10 @@ const MESSAGES: Record<string, string> = {
   // Review
   REVIEW_INVALID_CURSOR: 'Không tải được thêm đánh giá. Vui lòng tải lại.',
   REVIEW_DISTRIBUTOR_NOT_FOUND: 'Không tìm thấy nhà phân phối.',
+  REVIEW_INVALID_STAR: 'Vui lòng chọn từ 1 đến 5 sao.',
+  REVIEW_INVALID_CONTENT: 'Nội dung đánh giá phải từ 1 đến 1000 ký tự.',
+  REVIEW_REVIEWER_NOT_ALLOWED: 'Chỉ tài khoản nông dân đã kích hoạt mới được đánh giá.',
+  REVIEW_TARGET_NOT_FOUND: 'Shop hoặc sản phẩm không còn tồn tại.',
+  REVIEW_ALREADY_EXISTS: 'Bạn đã đánh giá rồi.',
+  REVIEW_INVALID_TARGET: 'Hiện chưa thể đánh giá mục này.',
 };
