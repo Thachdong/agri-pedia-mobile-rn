@@ -45,4 +45,19 @@ describe('SelectField', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Thử lại' }));
     expect(onRetry).toHaveBeenCalled();
   });
+
+  it('short list (≤ 8) shows every option', async () => {
+    const onChange = jest.fn();
+    const short = [
+      { value: 'a', label: 'Hạt giống' },
+      { value: 'b', label: 'Phân bón' },
+      { value: 'c', label: 'Thuốc BVTV' },
+    ];
+    await render(<SelectField label="Lĩnh vực" options={short} value="a" onChange={onChange} />);
+    expect(screen.getAllByRole('radio')).toHaveLength(3);
+    expect(screen.getByRole('radio', { name: 'Hạt giống' })).toBeChecked();
+    await fireEvent.press(screen.getByRole('radio', { name: 'Thuốc BVTV' }));
+    expect(onChange).toHaveBeenCalledWith('c');
+  });
 });
+
