@@ -65,6 +65,9 @@ export function AppSheet({
       enableDynamicSizing={!isFixed}
       snapPoints={snapPoints}
       enablePanDownToClose
+      // A sheet opened from another sheet (SelectField options inside EditProfileSheet / ProductFormSheet) stacks on top.
+      // The default 'switch' minimizes the opener; the nested sheet lives in the opener's tree, so both ended up closed.
+      stackBehavior="push"
       enableContentPanningGesture={contentPanningEnabled}
       backdropComponent={renderBackdrop}
       keyboardBehavior="interactive"
