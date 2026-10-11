@@ -42,6 +42,10 @@ export type TInfiniteListProps<T> = {
    * is the list header). Pull-to-refresh also works then.
    */
   keepHeader?: boolean;
+  /** Grid: items per row (rows fill the width, each item `flex-1`). Default 1 = plain list. */
+  numColumns?: number;
+  /** Row style of a grid (`numColumns` > 1), e.g. `gap-3 px-4`. */
+  columnWrapperClassName?: string;
   className?: string;
   contentContainerClassName?: string;
   accessibilityLabel?: string;
@@ -65,6 +69,8 @@ export function InfiniteList<T>({
   emptyIcon = 'file-tray-outline',
   header,
   keepHeader = false,
+  numColumns = 1,
+  columnWrapperClassName,
   className,
   contentContainerClassName,
   accessibilityLabel,
@@ -150,6 +156,10 @@ export function InfiniteList<T>({
       data={firstPageState ? [] : items}
       keyExtractor={keyExtractor}
       renderItem={({ item, index }) => renderItem(item, index)}
+      // FlatList can't change numColumns on the fly → remount when it changes.
+      key={numColumns}
+      numColumns={numColumns}
+      columnWrapperClassName={numColumns > 1 ? columnWrapperClassName : undefined}
       ListHeaderComponent={header}
       ListEmptyComponent={
         firstPageState ?? <EmptyState icon={emptyIcon} title={emptyTitle} description={emptyDescription} />
