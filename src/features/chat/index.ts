@@ -3,6 +3,7 @@ export { ChatConversation, type TChatConversationProps, type TChatTarget } from 
 export { ChatHeaderButton } from './components/chat-header-button';
 export { ChatRealtimeSync } from './components/chat-realtime-sync';
 export { ChatRoomList } from './components/chat-room-list';
+export { ChatWithUser, type TChatWithUserProps } from './components/chat-with-user';
 export { chatRoomsQuery, roomMessagesQuery } from './hooks/chat.queries';
 export { useChatRoomName } from './hooks/use-chat-room-name';
 export { useChatRooms } from './hooks/use-chat-rooms';

@@ -1,44 +1,47 @@
-import { screen } from '@testing-library/react-native';
-import { useSession } from '@/features/auth';
+import { fireEvent, screen } from '@testing-library/react-native';
+import { Linking, Text } from 'react-native';
+import { AppError } from '@/shared/lib/http';
 import { renderWithProviders } from '@/test-utils';
+import { getDistributorProfile } from '../services/distributor-profile.service';
+import { distributorProfile } from '../test/distributor.fixtures';
 import { DistributorProfileInfo } from './distributor-profile-info';
 
-jest.mock('@/features/auth', () => ({ useSession: jest.fn() }));
-
-const GUEST = { status: 'guest', user: undefined, isLoggedIn: false } as const;
-const loggedInAs = (id: string) =>
-  ({ status: 'authenticated', user: { id }, isLoggedIn: true }) as unknown as ReturnType<typeof useSession>;
+jest.mock('../services/distributor-profile.service');
+jest.mock('@/features/location', () => ({ useAddressLabel: () => '1 Kim Mã, Phường Ba Đình, Hà Nội' }));
 
 describe('DistributorProfileInfo', () => {
-  it('renders the 5 info rows of the wireframe', async () => {
-    jest.mocked(useSession).mockReturnValue(GUEST);
-    await renderWithProviders(<DistributorProfileInfo distributorId="d1" />);
-    for (const label of ['Email / Phone', 'Giấy phép kinh doanh', 'Địa chỉ', 'Lĩnh vực kinh doanh', 'Giới thiệu']) {
-      expect(screen.getByText(label)).toBeOnTheScreen();
-    }
+  beforeEach(() => jest.clearAllMocks());
+
+  it('username, actions slot and the 5 rows with values', async () => {
+    jest.mocked(getDistributorProfile).mockResolvedValue(distributorProfile());
+    await renderWithProviders(<DistributorProfileInfo distributorId="d1" actions={<Text>ACTIONS</Text>} />);
+
+    expect(await screen.findByRole('header', { name: 'Đại lý Minh Phát' })).toBeOnTheScreen();
+    expect(screen.getByText('ACTIONS')).toBeOnTheScreen();
+    expect(screen.getByText('minhphat@example.com')).toBeOnTheScreen();
+    expect(screen.getByText('1 Kim Mã, Phường Ba Đình, Hà Nội')).toBeOnTheScreen();
+    expect(screen.getByText('Giống cây trồng')).toBeOnTheScreen();
+    expect(screen.getByText('Chuyên giống lúa')).toBeOnTheScreen();
   });
 
-  it('guest → Chat visible', async () => {
-    jest.mocked(useSession).mockReturnValue(GUEST);
+  it('license → "Xem giấy phép" opens the signed URL; none → "Chưa cung cấp"', async () => {
+    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    jest.mocked(getDistributorProfile).mockResolvedValue(distributorProfile());
     await renderWithProviders(<DistributorProfileInfo distributorId="d1" />);
-    expect(screen.getByRole('button', { name: 'Chat' })).toBeOnTheScreen();
+    await fireEvent.press(await screen.findByRole('link', { name: 'Xem giấy phép' }));
+    expect(openURL).toHaveBeenCalledWith('https://storage.example.com/license.pdf?sig=1');
+
+    jest.mocked(getDistributorProfile).mockResolvedValue(distributorProfile({ id: 'd2', bussinessLicense: null }));
+    await renderWithProviders(<DistributorProfileInfo distributorId="d2" />);
+    expect(await screen.findByText('Chưa cung cấp')).toBeOnTheScreen();
   });
 
-  it('another user → Chat visible', async () => {
-    jest.mocked(useSession).mockReturnValue(loggedInAs('u2'));
-    await renderWithProviders(<DistributorProfileInfo distributorId="d1" />);
-    expect(screen.getByRole('button', { name: 'Chat' })).toBeOnTheScreen();
-  });
-
-  it('session loading → Chat hidden (no flash before the owner is known)', async () => {
-    jest.mocked(useSession).mockReturnValue({ status: 'loading', user: undefined, isLoggedIn: false });
-    await renderWithProviders(<DistributorProfileInfo distributorId="d1" />);
-    expect(screen.queryByRole('button', { name: 'Chat' })).toBeNull();
-  });
-
-  it('owner (own profile) → Chat hidden', async () => {
-    jest.mocked(useSession).mockReturnValue(loggedInAs('d1'));
-    await renderWithProviders(<DistributorProfileInfo distributorId="d1" />);
-    expect(screen.queryByRole('button', { name: 'Chat' })).toBeNull();
+  it('404 → not found, no retry', async () => {
+    jest
+      .mocked(getDistributorProfile)
+      .mockRejectedValue(new AppError({ status: 404, code: 'USER_DISTRIBUTOR_NOT_FOUND', message: 'x' }));
+    await renderWithProviders(<DistributorProfileInfo distributorId="x" />);
+    expect(await screen.findByText('Không tìm thấy nhà phân phối')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: 'Thử lại' })).toBeNull();
   });
 });

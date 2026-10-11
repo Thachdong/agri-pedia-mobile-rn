@@ -15,4 +15,6 @@ export const ROUTES = {
   notifications: '/notifications',
   chat: '/chat',
   chatRoom: (roomId: string) => `/chat/${roomId}` as const,
+  /** Chat with one user (profile Chat): opens the existing room, or a new conversation by `receiverId`. */
+  chatWithUser: (userId: string) => `/chat/user/${userId}` as const,
 } as const;

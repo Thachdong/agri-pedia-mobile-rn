@@ -5,7 +5,6 @@ export {
   DistributorExplorerMap,
   DistributorExplorerProvider,
 } from './components/distributor-explorer';
-export { DistributorProfileInfo } from './components/distributor-profile-info';
 export { DistributorProfileTabs } from './components/distributor-profile-tabs';
 export { distributorProfileQuery } from './hooks/distributor-profile.queries';
 export { nearbyDistributorsQuery } from './hooks/distributor.queries';
