@@ -58,4 +58,20 @@ describe('DistributorProductsTab', () => {
     expect(screen.getByRole('button', { name: 'Thêm sản phẩm' })).toBeOnTheScreen();
     expect(screen.getByText('Chưa có sản phẩm')).toBeOnTheScreen();
   });
+
+  it('odd count → filler cell keeps the last card in its own half', async () => {
+    jest.mocked(useSession).mockReturnValue(session());
+    jest.mocked(useDistributorProducts).mockReturnValue(
+      products([
+        { id: 'p1', name: 'A' },
+        { id: 'p2', name: 'B' },
+        { id: 'p3', name: 'C' },
+      ]),
+    );
+    await renderWithProviders(<DistributorProductsTab distributorId="d1" />);
+    // Last row = card C + an empty sibling cell.
+    const row = screen.getByRole('button', { name: 'C' }).parent;
+    expect(row?.children).toHaveLength(2);
+  });
 });
+

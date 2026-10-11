@@ -30,4 +30,14 @@ describe('MultiImagePickerField', () => {
     expect(screen.queryByRole('button', { name: 'Thêm ảnh sản phẩm' })).toBeNull();
     expect(screen.getByText('Sản phẩm cần từ 1 đến 10 ảnh')).toBeOnTheScreen();
   });
+
+  it('thumbnail that fails to load (expired URL) → icon, still removable', async () => {
+    const p = props();
+    await render(<MultiImagePickerField {...p} />);
+    await fireEvent(screen.getByLabelText('Ảnh 1'), 'error', { nativeEvent: { error: 'expired' } });
+    expect(screen.getByRole('image', { name: 'Ảnh 1' })).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Xoá ảnh 1' }));
+    expect(p.onRemoveExisting).toHaveBeenCalledWith('m1');
+  });
 });
+

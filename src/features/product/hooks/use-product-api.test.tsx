@@ -71,7 +71,7 @@ describe('product mutation hooks', () => {
     expect(spy).toHaveBeenCalledWith({ queryKey: queryKeys.products.list('d1') });
   });
 
-  it('delete → invalidates the shop list and drops the cached detail', async () => {
+  it('delete → invalidates the shop list; detail kept but stale, not refetched', async () => {
     jest.mocked(deleteProduct).mockResolvedValue(undefined);
     const client = createTestQueryClient();
     client.setQueryData(queryKeys.products.detail('p1'), productDetail());
@@ -81,6 +81,8 @@ describe('product mutation hooks', () => {
     await act(() => result.current.mutateAsync('p1'));
 
     expect(spy).toHaveBeenCalledWith({ queryKey: queryKeys.products.list('d1') });
-    expect(client.getQueryData(queryKeys.products.detail('p1'))).toBeUndefined();
+    expect(spy).toHaveBeenCalledWith({ queryKey: queryKeys.products.detail('p1'), refetchType: 'none' });
+    expect(client.getQueryState(queryKeys.products.detail('p1'))?.isInvalidated).toBe(true);
+    expect(client.getQueryData(queryKeys.products.detail('p1'))).toEqual(productDetail());
   });
 });

@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { cn } from '@/shared/lib/utils';
 import { TEXT } from '@/shared/theme';
@@ -100,15 +101,24 @@ export function MultiImagePickerField({
 type TThumbnailProps = { uri: string; label: string; disabled: boolean; onRemove: () => void };
 
 function Thumbnail({ uri, label, disabled, onRemove }: TThumbnailProps) {
+  // Current images are signed URLs that expire → icon instead of a blank tile.
+  const [failed, setFailed] = useState(false);
   return (
-    <View className="h-24 w-24 overflow-hidden rounded-lg bg-surface">
-      <Image
-        source={{ uri }}
-        contentFit="cover"
-        accessibilityLabel={label}
-        // expo-image has no NativeWind interop → plain style.
-        style={StyleSheet.absoluteFill}
-      />
+    <View className="h-24 w-24 items-center justify-center overflow-hidden rounded-lg bg-surface">
+      {failed ? (
+        <View accessible accessibilityRole="image" accessibilityLabel={label}>
+          <Icon name="image-outline" color="mutedForeground" />
+        </View>
+      ) : (
+        <Image
+          source={{ uri }}
+          contentFit="cover"
+          accessibilityLabel={label}
+          onError={() => setFailed(true)}
+          // expo-image has no NativeWind interop → plain style.
+          style={StyleSheet.absoluteFill}
+        />
+      )}
       <IconButton
         icon="close-circle"
         size="md"

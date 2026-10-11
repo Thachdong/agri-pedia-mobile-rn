@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useCallback, type ReactElement } from 'react';
+import { useCallback, useMemo, type ReactElement } from 'react';
 import { View } from 'react-native';
 import { useSession } from '@/features/auth';
 import { ProductCard, ProductFormSheet, useDistributorProducts, type TDistributorProduct } from '@/features/product';
@@ -8,7 +8,11 @@ import { InfiniteList } from '@/shared/components/organisms';
 import { ROUTES } from '@/shared/constants';
 import { useAppSheet } from '@/shared/lib/sheet';
 
-const keyExtractor = (product: TDistributorProduct) => product.id;
+/** Empty last cell of an odd row — keeps the last card at half width (a lone `flex-1` cell would fill the row). */
+const FILLER = 'filler' as const;
+type TGridCell = TDistributorProduct | typeof FILLER;
+
+const keyExtractor = (cell: TGridCell) => (cell === FILLER ? FILLER : cell.id);
 const GRID_COLUMNS = 2;
 
 export type TDistributorProductsTabProps = {
@@ -31,15 +35,20 @@ export function DistributorProductsTab({ distributorId, header, className }: TDi
 
   const onOpen = useCallback((productId: string) => router.push(ROUTES.product(productId)), [router]);
   const renderItem = useCallback(
-    (product: TDistributorProduct) => <ProductCard product={product} onPress={onOpen} />,
+    (cell: TGridCell) =>
+      cell === FILLER ? <View className="flex-1" /> : <ProductCard product={cell} onPress={onOpen} />,
     [onOpen],
   );
+  const cells = useMemo<TGridCell[]>(() => {
+    const products = query.data ?? [];
+    return products.length % GRID_COLUMNS === 0 ? products : [...products, FILLER];
+  }, [query.data]);
 
   return (
     <>
       <InfiniteList
         query={query}
-        items={query.data ?? []}
+        items={cells}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
         numColumns={GRID_COLUMNS}
