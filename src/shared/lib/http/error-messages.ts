@@ -88,6 +88,11 @@ const MESSAGES: Record<string, string> = {
   PRODUCT_INVALID_CURSOR: 'Không tải được thêm sản phẩm. Vui lòng tải lại.',
   PRODUCT_DISTRIBUTOR_NOT_FOUND: 'Không tìm thấy nhà phân phối.',
   PRODUCT_NOT_FOUND: 'Sản phẩm không còn tồn tại.',
+  PRODUCT_SELLER_NOT_ALLOWED: 'Chỉ tài khoản nhà phân phối đã kích hoạt mới được quản lý sản phẩm.',
+  PRODUCT_NOT_OWNER: 'Bạn không phải chủ của sản phẩm này.',
+  PRODUCT_CATEGORY_NOT_FOUND: 'Danh mục không còn tồn tại, vui lòng chọn lại.',
+  PRODUCT_INVALID_PRICE: 'Giá không hợp lệ.',
+  PRODUCT_INVALID_QUANTITY: 'Số lượng không hợp lệ.',
   // Review
   REVIEW_INVALID_CURSOR: 'Không tải được thêm đánh giá. Vui lòng tải lại.',
   REVIEW_DISTRIBUTOR_NOT_FOUND: 'Không tìm thấy nhà phân phối.',

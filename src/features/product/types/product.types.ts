@@ -15,3 +15,11 @@ export type TProductUnit = TProductDetail['unit'];
 
 export type TCategory = TApiSchema<'CategoryResponse'>;
 export type TCategoriesResponse = TApiSchema<'ListCategoriesResponse'>;
+
+/** Body of POST /products — `media` (1..10) are files uploaded to TMP (TUploadedMedia + optional sortOrder). */
+export type TCreateProductInput = TApiSchema<'CreateProductDto'>;
+export type TCreateProductResponse = TApiSchema<'CreateProductResponse'>;
+
+/** Body of PATCH /products/{id} — omitted fields keep their value (never `null`); `addMedia` / `removeMediaIds` 0..10. */
+export type TUpdateProductInput = TApiSchema<'UpdateProductDto'>;
+export type TUpdateProductVariables = { productId: string; input: TUpdateProductInput };
