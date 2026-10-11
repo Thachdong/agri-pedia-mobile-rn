@@ -8,6 +8,7 @@ export type {
   TDistributorReviewsParams,
   TDistributorReviewsView,
   TFindDistributorReviewParams,
+  TReviewFormValues,
   TReviewSummary,
   TReviewTargetType,
 } from './types/review.types';

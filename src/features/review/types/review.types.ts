@@ -22,3 +22,6 @@ export type TDistributorReviewsView = { summary: TReviewSummary; reviews: TDistr
 /** POST /reviews — USER: `targetId` = distributor id; PRODUCT: product id. */
 export type TCreateReviewInput = TApiSchema<'CreateReviewDto'>;
 export type TCreateReviewResponse = TApiSchema<'CreateReviewResponse'>;
+
+/** Review form (M4 / M5) — the target comes from the sheet. `star` 0 = not chosen yet. */
+export type TReviewFormValues = Pick<TCreateReviewInput, 'star' | 'content'>;
