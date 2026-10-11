@@ -19,6 +19,20 @@ const extensionOf = (name: string) => {
 };
 const nameFromUri = (uri: string) => decodeURIComponent(uri.split('/').pop() ?? 'file');
 
+/** Picked image → TPickedFile. Extension of the real file: iOS re-encodes (HEIC → JPEG) while `fileName` keeps the original name. */
+const toPickedImage = (asset: ImagePicker.ImagePickerAsset): TPickedFile => {
+  const extension = extensionOf(asset.uri);
+  const original = asset.fileName ?? nameFromUri(asset.uri);
+  const base = original.includes('.') ? original.slice(0, original.lastIndexOf('.')) : original;
+  return {
+    uri: asset.uri,
+    name: extension ? `${base}.${extension}` : original,
+    mimeType: asset.mimeType ?? 'image/jpeg',
+    size: asset.fileSize ?? null,
+    extension,
+  };
+};
+
 /**
  * One image from the photo library (system picker — no permission prompt on iOS 14+ / Android 13+).
  * Cancelled or any native error → null; never throws to the UI.
@@ -27,20 +41,30 @@ export async function pickImage(): Promise<TPickedFile | null> {
   try {
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: IMAGE_QUALITY });
     const asset = result.canceled ? undefined : result.assets[0];
-    if (!asset) return null;
-    // Extension of the real file: iOS re-encodes (HEIC → JPEG) while `fileName` keeps the original name.
-    const extension = extensionOf(asset.uri);
-    const original = asset.fileName ?? nameFromUri(asset.uri);
-    const base = original.includes('.') ? original.slice(0, original.lastIndexOf('.')) : original;
-    return {
-      uri: asset.uri,
-      name: extension ? `${base}.${extension}` : original,
-      mimeType: asset.mimeType ?? 'image/jpeg',
-      size: asset.fileSize ?? null,
-      extension,
-    };
+    return asset ? toPickedImage(asset) : null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Up to `limit` images from the photo library in one pick (multi-select), in the order chosen.
+ * `limit` < 1 → nothing to pick. Cancelled or any native error → []; never throws to the UI.
+ */
+export async function pickImages({ limit }: { limit: number }): Promise<TPickedFile[]> {
+  if (limit < 1) return [];
+  try {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: IMAGE_QUALITY,
+      allowsMultipleSelection: true,
+      selectionLimit: limit,
+      orderedSelection: true,
+    });
+    // Android ignores `selectionLimit` on some versions — cap here too.
+    return result.canceled ? [] : result.assets.slice(0, limit).map(toPickedImage);
+  } catch {
+    return [];
   }
 }
 
