@@ -1,20 +1,26 @@
 import { useLocalSearchParams } from 'expo-router';
+import { ScrollView, View } from 'react-native';
 import { DistributorProfileInfo, DistributorProfileTabs } from '@/features/distributor';
 import { AccountHeaderActions } from '@/features/user';
 import { SiteHeader } from '@/shared/components/organisms';
 import { ProfileLayout } from '@/shared/components/templates';
 
 /**
- * Distributor profile "/profile/<id>" (ui-ux.md §7, image-5 / image-6) — public. Layout only: header as "/",
- * info (title, Chat hidden for the owner, info table) and tabs Sản Phẩm | Đánh giá without data yet.
+ * Distributor profile "/profile/<id>" (ui-ux.md §7, image-5 / image-6) — public. Header as "/", info and tabs.
  */
 export default function ProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   return (
     <ProfileLayout
       header={<SiteHeader actions={<AccountHeaderActions />} />}
-      info={<DistributorProfileInfo distributorId={id} />}
-      tabs={<DistributorProfileTabs />}
+      body={
+        <ScrollView>
+          <View className="gap-6 px-4 py-6">
+            <DistributorProfileInfo distributorId={id} />
+            <DistributorProfileTabs />
+          </View>
+        </ScrollView>
+      }
     />
   );
 }

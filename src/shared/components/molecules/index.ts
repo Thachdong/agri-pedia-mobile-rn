@@ -1,5 +1,6 @@
 export { CountdownResend, type TCountdownResendProps } from './countdown-resend';
 export { EmptyState, type TEmptyStateProps } from './empty-state';
+export { FilePickerField, type TFilePickerFieldProps, type TFilePickerValue } from './file-picker-field';
 export { FormInput, type TFormInputProps } from './form-input';
 export { IconBadgeButton, type TIconBadgeButtonProps } from './icon-badge-button';
 export { InfoTable, type TInfoTableItem, type TInfoTableProps } from './info-table';
