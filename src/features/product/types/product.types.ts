@@ -1,4 +1,5 @@
 import type { TMediaType } from '@/features/media';
+import type { TPickedFile } from '@/shared/lib/device';
 import type { TApiSchema } from '@/shared/lib/http';
 
 /** Item of GET /products — ACTIVE only; `thumbnail` signed URL of the first image (expires) or null. */
@@ -23,3 +24,20 @@ export type TCreateProductResponse = TApiSchema<'CreateProductResponse'>;
 /** Body of PATCH /products/{id} — omitted fields keep their value (never `null`); `addMedia` / `removeMediaIds` 0..10. */
 export type TUpdateProductInput = TApiSchema<'UpdateProductDto'>;
 export type TUpdateProductVariables = { productId: string; input: TUpdateProductInput };
+
+/**
+ * Create (M8) / edit (M9) form — one shape for both. `price` / `quantity` are the typed text (converted on submit);
+ * `unit` '' = not chosen. Images: `keptMediaIds` = current images still kept (edit), `images` = newly picked files,
+ * uploaded on save. `status` only sent on edit (a new product is ACTIVE).
+ */
+export type TProductFormValues = {
+  name: string;
+  description: string;
+  price: string;
+  quantity: string;
+  categoryId: string;
+  unit: TProductUnit | '';
+  status: TProductStatus;
+  keptMediaIds: string[];
+  images: TPickedFile[];
+};
