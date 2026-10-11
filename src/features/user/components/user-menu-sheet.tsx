@@ -16,7 +16,7 @@ export type TUserMenuSheetProps = {
 };
 
 /**
- * Header (4) avatar menu (ui-ux.md §6): Trang cá nhân (DISTRIBUTOR only — FARMER profile is not built yet), Đăng xuất.
+ * Header (4) avatar menu (ui-ux.md §6): Trang cá nhân (FARMER → /profile/me, DISTRIBUTOR → /profile/<id>), Đăng xuất.
  */
 export function UserMenuSheet({ sheetRef, onClose, user }: TUserMenuSheetProps) {
   const router = useRouter();
@@ -33,16 +33,14 @@ export function UserMenuSheet({ sheetRef, onClose, user }: TUserMenuSheetProps) 
             {user.username}
           </Text>
         </View>
-        {user.role === 'DISTRIBUTOR' && (
-          <MenuItem
-            icon="person-outline"
-            label="Trang cá nhân"
-            onPress={() => {
-              onClose();
-              router.push(ROUTES.profile(user.id));
-            }}
-          />
-        )}
+        <MenuItem
+          icon="person-outline"
+          label="Trang cá nhân"
+          onPress={() => {
+            onClose();
+            router.push(user.role === 'FARMER' ? ROUTES.myProfile : ROUTES.profile(user.id));
+          }}
+        />
         <MenuItem
           icon="log-out-outline"
           label="Đăng xuất"

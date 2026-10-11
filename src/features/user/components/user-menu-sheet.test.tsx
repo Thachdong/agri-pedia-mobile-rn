@@ -28,9 +28,11 @@ describe('UserMenuSheet', () => {
     expect(screen.getByText('Bác Ba')).toBeOnTheScreen();
   });
 
-  it('FARMER → no "Trang cá nhân" (farmer profile out of scope)', async () => {
-    await renderSheet(currentUser({ role: 'FARMER' }));
-    expect(screen.queryByRole('button', { name: 'Trang cá nhân' })).toBeNull();
+  it('FARMER → "Trang cá nhân" closes the sheet and opens /profile/me', async () => {
+    await renderSheet(currentUser({ id: 'f1', role: 'FARMER' }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Trang cá nhân' }));
+    expect(onClose).toHaveBeenCalled();
+    expect(mockPush).toHaveBeenCalledWith('/profile/me');
   });
 
   it('DISTRIBUTOR → "Trang cá nhân" closes the sheet and opens /profile/<id>', async () => {

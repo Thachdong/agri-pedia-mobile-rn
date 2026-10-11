@@ -10,6 +10,8 @@ export const ROUTES = {
   resetPassword: '/auth/reset-password',
   changePassword: '/auth/change-password',
   profile: (id: string) => `/profile/${id}` as const,
+  /** Own profile of the logged-in user (private; FARMER — a DISTRIBUTOR is redirected to `profile(id)`). */
+  myProfile: '/profile/me',
   /** Product detail — a page on mobile (web: dialog M3). */
   product: (id: string) => `/product/${id}` as const,
   notifications: '/notifications',
