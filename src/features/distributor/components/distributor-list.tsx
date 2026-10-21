@@ -1,20 +1,27 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, type ReactElement } from 'react';
+import { Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import { useProvinces } from '@/features/location';
 import { InfiniteList, type TInfiniteListHandle } from '@/shared/components/organisms';
 import { ROUTES } from '@/shared/constants';
 import { cn } from '@/shared/lib/utils';
 import { TEXT } from '@/shared/theme';
 import { NEARBY_FALLBACK_NOTES } from '../constants/distributor.constants';
+import { useDistributorProfile } from '../hooks/use-distributor-profile';
 import type { useNearbyDistributors } from '../hooks/use-nearby-distributors';
 import type { TNearbyDistributor, TNearbyDistributorsView } from '../types/distributor.types';
+import { pinOwnShop, profileToNearbyItem } from '../utils/own-shop.util';
 import { DistributorCard } from './distributor-card';
 
 export type TDistributorListProps = {
   query: ReturnType<typeof useNearbyDistributors>;
   /** Distributor picked on the map → highlighted and scrolled into view. */
   selectedId: string | null;
+  /** Logged-in DISTRIBUTOR: its shop pinned first, every other card shown but not openable. */
+  ownShopId?: string;
+  /** Above the list and kept while it loads (home: diagnosis, articles, map, filter). */
+  header?: ReactElement | null;
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   className?: string;
 };
 
@@ -26,13 +33,22 @@ const getFallbackNote = ({ scope, source }: TNearbyDistributorsView): string | n
   return null;
 };
 
-/** Distributor list of home "/" (ui-ux.md §6 (7)) — infinite, card → /profile/<userId>. */
-export function DistributorList({ query, selectedId, className }: TDistributorListProps) {
+/**
+ * Distributor list of home "/" (ui-ux.md §6 (7)) — infinite, card → /profile/<userId>. A DISTRIBUTOR sees its own
+ * shop first (fetched by id when the search did not return it) and cannot open the others (Specs/19102026).
+ */
+export function DistributorList({ query, selectedId, ownShopId, header, onScroll, className }: TDistributorListProps) {
   const router = useRouter();
   const listRef = useRef<TInfiniteListHandle>(null);
   const provinces = useProvinces();
   const view = query.data;
-  const items = view?.items ?? [];
+  const loadedOwn = ownShopId ? view?.items.find((item) => item.userId === ownShopId) : undefined;
+  const ownProfile = useDistributorProfile(ownShopId ?? '', { enabled: !!ownShopId && !!view && !loadedOwn });
+  const own = useMemo(
+    () => loadedOwn ?? (ownShopId && ownProfile.data ? profileToNearbyItem(ownProfile.data) : null),
+    [loadedOwn, ownShopId, ownProfile.data],
+  );
+  const items = useMemo(() => pinOwnShop(view?.items ?? [], own), [view?.items, own]);
 
   const provinceNames = useMemo(
     () => new Map(provinces.data?.map(({ codename, name }) => [codename, name])),
@@ -61,16 +77,24 @@ export function DistributorList({ query, selectedId, className }: TDistributorLi
           distributor={distributor}
           provinceName={provinceNames.get(distributor.address.province) ?? null}
           selected={distributor.userId === selectedId}
+          disabled={!!ownShopId && distributor.userId !== ownShopId}
           onPress={openProfile}
         />
       )}
       header={
-        note ? (
-          <View className="rounded-lg bg-highlight-subtle px-3 py-2">
-            <Text className={cn(TEXT.bodySmall, 'text-foreground')}>{note}</Text>
+        header || note ? (
+          <View className="gap-2">
+            {header}
+            {note && (
+              <View className="rounded-lg bg-highlight-subtle px-3 py-2">
+                <Text className={cn(TEXT.bodySmall, 'text-foreground')}>{note}</Text>
+              </View>
+            )}
           </View>
         ) : null
       }
+      keepHeader={!!header}
+      onScroll={onScroll}
       emptyIcon="storefront-outline"
       emptyTitle="Chưa có nhà phân phối"
       emptyDescription="Thử chọn tỉnh/thành khác hoặc xoá bộ lọc."

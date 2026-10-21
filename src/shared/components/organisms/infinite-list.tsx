@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, type ReactElement, type Ref } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  Text,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import { getErrorMessage } from '@/shared/lib/http';
 import { cn } from '@/shared/lib/utils';
 import { colors, TEXT } from '@/shared/theme';
@@ -46,10 +54,14 @@ export type TInfiniteListProps<T> = {
   numColumns?: number;
   /** Row style of a grid (`numColumns` > 1), e.g. `gap-3 px-4`. */
   columnWrapperClassName?: string;
+  /** Scroll position (e.g. lazy content in the header that starts when scrolled into view). */
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   className?: string;
   contentContainerClassName?: string;
   accessibilityLabel?: string;
 };
+
+const SCROLL_EVENT_THROTTLE_MS = 100;
 
 const SCROLL_RETRY_MS = 100;
 const END_REACHED_THRESHOLD = 0.5;
@@ -71,6 +83,7 @@ export function InfiniteList<T>({
   keepHeader = false,
   numColumns = 1,
   columnWrapperClassName,
+  onScroll,
   className,
   contentContainerClassName,
   accessibilityLabel,
@@ -168,6 +181,8 @@ export function InfiniteList<T>({
       onEndReached={onEndReached}
       onEndReachedThreshold={END_REACHED_THRESHOLD}
       onScrollToIndexFailed={onScrollToIndexFailed}
+      onScroll={onScroll}
+      scrollEventThrottle={onScroll ? SCROLL_EVENT_THROTTLE_MS : undefined}
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}

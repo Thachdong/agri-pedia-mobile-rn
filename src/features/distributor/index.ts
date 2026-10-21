@@ -4,6 +4,8 @@ export {
   DistributorExplorerList,
   DistributorExplorerMap,
   DistributorExplorerProvider,
+  DistributorExplorerSection,
+  type TDistributorExplorerProviderProps,
 } from './components/distributor-explorer';
 export { DistributorProfileTabs } from './components/distributor-profile-tabs';
 export { distributorProfileQuery } from './hooks/distributor-profile.queries';

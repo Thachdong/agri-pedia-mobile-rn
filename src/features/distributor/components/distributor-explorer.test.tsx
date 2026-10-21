@@ -4,7 +4,7 @@ import { useProvinces } from '@/features/location';
 import { getCurrentPosition } from '@/shared/lib/device';
 import { useNearbyDistributors } from '../hooks/use-nearby-distributors';
 import { nearbyDistributor, nearbyView } from '../test/distributor.fixtures';
-import { DistributorExplorerFilter, DistributorExplorerMap, DistributorExplorerProvider } from './distributor-explorer';
+import { DistributorExplorerProvider, DistributorExplorerSection } from './distributor-explorer';
 
 const mockFitTo = jest.fn();
 const mockAnimateTo = jest.fn();
@@ -46,13 +46,16 @@ jest.mock('@/shared/lib/map', () => {
 const HERE = { lat: 10.77, long: 106.7 };
 const HOME = { lat: 21.03, long: 105.82 };
 
-const renderExplorer = () =>
-  render(
+/** Section laid out at the top of the scroll → in view → the explorer starts. */
+const renderExplorer = async () => {
+  const result = await render(
     <DistributorExplorerProvider>
-      <DistributorExplorerMap />
-      <DistributorExplorerFilter />
+      <DistributorExplorerSection />
     </DistributorExplorerProvider>,
   );
+  await fireEvent(screen.getByTestId('distributor-explorer-section'), 'layout', { nativeEvent: { layout: { y: 0 } } });
+  return result;
+};
 
 describe('DistributorExplorer', () => {
   beforeEach(() => {

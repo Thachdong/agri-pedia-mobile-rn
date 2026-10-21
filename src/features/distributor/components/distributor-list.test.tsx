@@ -10,6 +10,7 @@ import { DistributorList } from './distributor-list';
 const mockPush = jest.fn();
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: mockPush }) }));
 jest.mock('@/features/location', () => ({ useProvinces: jest.fn() }));
+jest.mock('../hooks/use-distributor-profile', () => ({ useDistributorProfile: jest.fn(() => ({ data: undefined })) }));
 
 type TQuery = ReturnType<typeof useNearbyDistributors>;
 

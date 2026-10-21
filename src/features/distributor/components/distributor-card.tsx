@@ -12,6 +12,8 @@ export type TDistributorCardProps = {
   /** Province name resolved from the `address.province` codename; null → codename hidden (still loading). */
   provinceName: string | null;
   selected?: boolean;
+  /** Shown but not openable (a logged-in DISTRIBUTOR may only open its own shop). */
+  disabled?: boolean;
   onPress: (distributor: TNearbyDistributor) => void;
   className?: string;
 };
@@ -24,6 +26,7 @@ export const DistributorCard = memo(function DistributorCard({
   distributor,
   provinceName,
   selected = false,
+  disabled = false,
   onPress,
   className,
 }: TDistributorCardProps) {
@@ -35,12 +38,14 @@ export const DistributorCard = memo(function DistributorCard({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ selected }}
-      accessibilityHint="Mở trang nhà phân phối"
+      accessibilityState={{ selected, disabled }}
+      accessibilityHint={disabled ? undefined : 'Mở trang nhà phân phối'}
+      disabled={disabled}
       onPress={() => onPress(distributor)}
       className={cn(
         'min-h-11 flex-row items-center gap-3 rounded-lg border px-3 py-3 active:opacity-80',
         selected ? 'border-highlight bg-highlight-subtle' : 'border-border-subtle bg-card',
+        disabled && 'opacity-60',
         className,
       )}
     >
