@@ -5,6 +5,7 @@ export { diagnosisQuery, diagnosisSettingsQuery } from './hooks/diagnosis.querie
 export { cropsQuery, diseaseQuery } from './hooks/knowledge.queries';
 export { useCreateDiagnosis } from './hooks/use-create-diagnosis';
 export { useCrops } from './hooks/use-crops';
+export { useDiagnosis } from './hooks/use-diagnosis';
 export { useDiagnosisLive } from './hooks/use-diagnosis-live';
 export { useDiagnosisSettings } from './hooks/use-diagnosis-settings';
 export type { TCreateDiagnosisInput, TDiagnosis, TDiagnosisSettings, TPlantPart } from './types/diagnosis.types';

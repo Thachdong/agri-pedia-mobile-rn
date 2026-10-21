@@ -1,4 +1,5 @@
 // Public API of the `distributor` feature. Other features and src/app import only this file.
+export { DistributorCard, type TDistributorCardProps } from './components/distributor-card';
 export {
   DistributorExplorerFilter,
   DistributorExplorerList,
