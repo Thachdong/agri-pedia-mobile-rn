@@ -33,6 +33,23 @@ describe('useSendMessage', () => {
     expect(cache?.pages[0]?.messages[0]).toMatchObject({ senderId: 'u1', message: 'xin chào', createdAt: ACK.createdAt });
   });
 
+  it('diagnosis report: type + diagnosisId sent and kept in the cache', async () => {
+    jest.mocked(sendMessage).mockResolvedValue(ACK);
+    const client = createTestQueryClient();
+    client.setQueryData<TChatMessagesCache>(queryKeys.chat.messages('r1'), {
+      pages: [chatMessagesPage({ messages: [] })],
+      pageParams: [undefined],
+    });
+    const { result } = await renderHook(() => useSendMessage('u1'), { wrapper: hookWrapper(client) });
+    const input = { roomId: 'r1', message: 'Báo cáo', type: 'DIAGNOSIS_REPORT', diagnosisId: 'g1' } as const;
+
+    await act(() => result.current.mutateAsync(input));
+
+    expect(sendMessage).toHaveBeenCalledWith(input);
+    const cache = client.getQueryData<TChatMessagesCache>(queryKeys.chat.messages('r1'));
+    expect(cache?.pages[0]?.messages[0]).toMatchObject({ type: 'DIAGNOSIS_REPORT', diagnosisId: 'g1' });
+  });
+
   it('message is in the room cache before the rooms refetch finishes', async () => {
     jest.mocked(sendMessage).mockResolvedValue(ACK);
     const client = createTestQueryClient();

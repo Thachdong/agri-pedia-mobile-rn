@@ -1,6 +1,6 @@
 import { http } from '@/shared/lib/http';
-import { createDiagnosis, getDiagnosisSettings } from './diagnosis.service';
-import { getCrops } from './knowledge.service';
+import { createDiagnosis, getDiagnosis, getDiagnosisSettings } from './diagnosis.service';
+import { getCrops, getDisease } from './knowledge.service';
 
 jest.mock('@/shared/lib/http', () => ({ http: { get: jest.fn(), post: jest.fn() } }));
 
@@ -17,6 +17,13 @@ describe('diagnosis / knowledge services', () => {
     expect(http.get).toHaveBeenCalledWith('/diagnoses/settings', { signal });
     await getCrops(signal);
     expect(http.get).toHaveBeenCalledWith('/knowledge/crops', { signal });
+  });
+
+  it('GET /diagnoses/{id} and GET /knowledge/diseases/{code}, ids encoded', async () => {
+    await getDiagnosis('a/b');
+    expect(http.get).toHaveBeenCalledWith('/diagnoses/a%2Fb', { signal: undefined });
+    await getDisease('RICE_BLAST');
+    expect(http.get).toHaveBeenCalledWith('/knowledge/diseases/RICE_BLAST', { signal: undefined });
   });
 
   it('POST /diagnoses multipart: one `images` file per photo in order + `meta` JSON', async () => {
