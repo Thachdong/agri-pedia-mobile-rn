@@ -5,10 +5,11 @@ import { colors } from '@/shared/theme';
 
 const buttonVariants = cva('flex-row items-center justify-center gap-2 rounded-lg active:opacity-80', {
   variants: {
-    /** `normal` = main action (btn-normal), `highlight` = emphasised action — same names as web. */
+    /** `normal` = main action (btn-normal), `highlight` = emphasised action, `destructive` = delete — same names as web. */
     variant: {
       normal: 'bg-primary',
       highlight: 'bg-highlight',
+      destructive: 'bg-destructive',
       outline: 'border border-border-subtle bg-background',
       ghost: 'bg-transparent',
       link: 'bg-transparent',
@@ -27,6 +28,7 @@ const labelVariants = cva('text-center text-sm font-semibold', {
     variant: {
       normal: 'text-primary-foreground',
       highlight: 'text-highlight-foreground',
+      destructive: 'text-destructive-foreground',
       outline: 'text-foreground',
       ghost: 'text-foreground',
       link: 'text-highlight underline',
@@ -38,6 +40,7 @@ const labelVariants = cva('text-center text-sm font-semibold', {
 const SPINNER_COLOR = {
   normal: colors.primaryForeground,
   highlight: colors.highlightForeground,
+  destructive: colors.destructiveForeground,
   outline: colors.foreground,
   ghost: colors.foreground,
   link: colors.highlight,

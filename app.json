@@ -35,6 +35,14 @@
         {
           "locationWhenInUsePermission": "AgriPedia dùng vị trí của bạn để chọn địa chỉ trên bản đồ và tìm nhà phân phối gần bạn."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "AgriPedia dùng thư viện ảnh để bạn chọn ảnh đại diện, giấy phép kinh doanh và ảnh cây trồng cần chẩn đoán.",
+          "cameraPermission": "AgriPedia dùng camera để bạn chụp ảnh cây trồng cần chẩn đoán bệnh.",
+          "microphonePermission": false
+        }
       ]
     ],
     "experiments": {

@@ -460,6 +460,26 @@ export interface paths {
         patch: operations["ProductController_update"];
         trace?: never;
     };
+    "/products/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suggest product name + description from a photo of its label
+         * @description multipart/form-data: `image` = 1 photo (jpg/png/webp, at most 5MB; format checked by content), focused on the product name. The photo is not stored. Distributor only. Answers 200 with `status`: UNREADABLE (no name read: retake or type it), NOT_FOUND (`detectedName` read but not in the catalog), FOUND (`suggestion` { name, description } to prefill the product form). `remaining` = suggestions left for the caller (lifetime quota, set by admins); over 5MB the upload is refused with 413.
+         */
+        post: operations["ProductSuggestionController_suggest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/categories": {
         parameters: {
             query?: never;
@@ -469,6 +489,122 @@ export interface paths {
         };
         /** List product categories, ordered by name */
         get: operations["CategoryController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/product-catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List catalog items (product suggestion knowledge base)
+         * @description Sorted by name; `search` matches part of the name ignoring case, diacritics and punctuation. Page-based (`page` 1-based, `limit` 1..100, default 20).
+         */
+        get: operations["AdminProductCatalogController_list"];
+        put?: never;
+        /**
+         * Add a catalog item
+         * @description Suggested to distributors whose photo shows this name. The name is unique ignoring case, diacritics and punctuation. Optional `categoryId` (from `GET /categories`) and `unit` are suggested too, to preselect the product form.
+         */
+        post: operations["AdminProductCatalogController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/product-catalog/{catalogItemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a catalog item for good
+         * @description Empty body. Products already listed are not affected.
+         */
+        delete: operations["AdminProductCatalogController_delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Change a catalog item (omitted fields are kept)
+         * @description `categoryId` / `unit`: null clears them.
+         */
+        patch: operations["AdminProductCatalogController_update"];
+        trace?: never;
+    };
+    "/admin/product-suggestion/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the product suggestion quotas
+         * @description Defaults (50 / 50) until saved. Lifetime quotas per distributor, never reset.
+         */
+        get: operations["AdminProductSuggestionController_get"];
+        /**
+         * Replace the product suggestion quotas
+         * @description `invalidImageLimit` (1..10000): suggestions a distributor sees as its quota, charged by UNREADABLE and FOUND. `notFoundLimit` (0..10000): hidden bonus charged by NOT_FOUND first (then the visible quota); raise it while the catalog is thin. Applies to what distributors already used.
+         */
+        put: operations["AdminProductSuggestionController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/product-suggestion/ai-model": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the AI model that reads product names
+         * @description `model`: picked by an admin; null = the env model in `defaults.model` is used.
+         */
+        get: operations["AdminProductSuggestionController_getModel"];
+        /**
+         * Replace the AI model that reads product names
+         * @description `model` is required; null = use the env model. Model id: letters, digits, `.`, `_`, `-`, at most 100 characters, not starting with `.`, `_` or `-` (PRODUCT_SUGGESTION_INVALID_SETTINGS otherwise). The id is not checked against the provider: an unknown model makes suggestions fail. Applies to the next suggestion.
+         */
+        put: operations["AdminProductSuggestionController_updateModel"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/product-suggestion/misses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List product names read from photos but missing in the catalog
+         * @description Grouped by normalized name: count, distinct distributors, last seen; most frequent first. Page-based (`page` 1-based, `limit` 1..100, default 20).
+         */
+        get: operations["AdminProductSuggestionController_misses"];
         put?: never;
         post?: never;
         delete?: never;
@@ -630,7 +766,7 @@ export interface paths {
         };
         /**
          * List the caller's chat rooms with unread counts
-         * @description Any logged-in user. Rooms the caller is a member of, most recent message first (`lastMessageAt` desc). Each room carries the other member: `otherUserId`, `otherUsername` (null if that user no longer exists) and `otherUserAvatar` (signed read URL that expires; null when none). `unreadCount` = messages from the other member not read by the caller; a message is read when it arrives while the caller has the room open (socket `chat.room.enter`), or once the caller enters the room later. The caller’s own messages never count. `totalUnread` covers all rooms, not only this page. `limit` 1..50, default 20; pass the returned `nextCursor` as `cursor` for the next page (null on the last page).
+         * @description Any logged-in user. Rooms the caller is a member of, most recent message first (`lastMessageAt` desc). Each room carries the other member: `otherUserId`, `otherUsername` (null if that user no longer exists) and `otherUserAvatar` (signed read URL that expires; null when none). `unreadCount` = messages from the other member not read by the caller; a message is read when it arrives while the caller has the room open (socket `chat.room.enter`), or once the caller enters the room later. The caller’s own messages never count. `totalUnread` covers all rooms, not only this page. `lastMessage.type` TEXT | DIAGNOSIS_REPORT (`diagnosisId` set for a report). `limit` 1..50, default 20; pass the returned `nextCursor` as `cursor` for the next page (null on the last page).
          */
         get: operations["ChatController_listMyRooms"];
         put?: never;
@@ -650,10 +786,494 @@ export interface paths {
         };
         /**
          * List the messages of a chat room
-         * @description Caller must be a member of the room. Newest message first (`createdAt` desc); `limit` 1..50, default 20; pass the returned `nextCursor` as `cursor` to get older messages (null on the last page). Each message carries its sender's `senderUsername` (null when the user no longer exists) and `senderAvatar` (signed read URL that expires; null when none). Read-only: does not mark messages read (socket `chat.room.enter` does). New messages arrive live through socket `chat.message.received` (same sender fields).
+         * @description Caller must be a member of the room. Newest message first (`createdAt` desc); `limit` 1..50, default 20; pass the returned `nextCursor` as `cursor` to get older messages (null on the last page). Each message carries its sender's `senderUsername` (null when the user no longer exists) and `senderAvatar` (signed read URL that expires; null when none). Read-only: does not mark messages read (socket `chat.room.enter` does). `type` TEXT | DIAGNOSIS_REPORT; a report carries `diagnosisId`, read it with GET /chat/rooms/{roomId}/messages/{messageId}/diagnosis. New messages arrive live through socket `chat.message.received` (same sender fields).
          */
         get: operations["ChatController_listMessages"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/rooms/{roomId}/messages/{messageId}/diagnosis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the diagnosis shared by a chat message
+         * @description Caller must be a member of the room (the FARMER who shared it or the DISTRIBUTOR). The message must be a DIAGNOSIS_REPORT (socket `chat.message.send` with `type` + `diagnosisId`). Same body as GET /diagnoses/{diagnosisId} for its owner, as of now (later feedback shows), image URLs signed and expiring. Only the shared diagnosis is readable, not the farmer’s others.
+         */
+        get: operations["ChatController_messageDiagnosis"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/diagnoses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List my diagnoses, newest first
+         * @description Cursor pagination. `thumbnail` = signed URL of the first stored image; `diseases` empty while PROCESSING or when FAILED.
+         */
+        get: operations["DiagnosisController_listMine"];
+        put?: never;
+        /**
+         * Send plant photos for disease diagnosis (processed in background)
+         * @description multipart/form-data: `images` = 1..`maxImages` files (jpg/png/webp, at most `maxImageBytes` bytes and `maxImageWidth` x `maxImageHeight` px each, see GET /diagnoses/settings; format checked by content), `meta` = JSON string `{ cropType, images: [{ plantPart }], note? }` with one entry per file in the same order; `cropType` from GET /knowledge/crops and each `plantPart` from that crop's `plantParts` (otherwise DIAGNOSIS_INVALID_IMAGE). Answers 202 with status PROCESSING; the result comes via realtime `diagnosis.completed` { id, status } or by polling GET /diagnoses/{diagnosisId}. Daily limit per user: `dailyFreeLimit` of the admin diagnosis settings (Vietnam day).
+         */
+        post: operations["DiagnosisController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/diagnoses/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the diagnosis form settings (public)
+         * @description No login needed; the access token is optional (an invalid one → 401). Default crop to preselect (null = none), image count range and per-image limits as sent (bytes, pixel width/height after EXIF orientation). Resize larger photos before POST /diagnoses; images over a limit answer DIAGNOSIS_INVALID_IMAGE with the image index. `remainingToday`: diagnoses the caller may still send today (`dailyFreeLimit` minus the caller's diagnoses since 00:00 UTC+7, at least 0); null without an access token.
+         */
+        get: operations["DiagnosisController_settings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/diagnoses/{diagnosisId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get one of my diagnoses with per-image results
+         * @description While PROCESSING: `summary` null, image `status` null, `regions` empty. Region `box` is 0..1 on the stored (EXIF-rotated) image at `url`; `diagnosis` null = uncertain region. Use `diseaseCode` with GET /knowledge/diseases/{code}. Another user's diagnosis answers 404.
+         */
+        get: operations["DiagnosisController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/diagnoses/{diagnosisId}/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Give feedback on a completed diagnosis (overwrites)
+         * @description Empty body (null) on success.
+         */
+        post: operations["DiagnosisController_feedback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/diagnosis/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the diagnosis settings (admin)
+         * @description Defaults until saved: dailyFreeLimit 3, defaultCropType null, maxImages 5, maxImageBytes 5242880, maxImageWidth / maxImageHeight 4096.
+         */
+        get: operations["AdminDiagnosisSettingsController_get"];
+        /**
+         * Replace the diagnosis settings (admin)
+         * @description Every field is required. Ranges: dailyFreeLimit 1..1000, maxImages 1..10, maxImageBytes 102400..20971520, maxImageWidth / maxImageHeight 256..8192 (DIAGNOSIS_INVALID_SETTINGS with `details.field` otherwise). `defaultCropType` must be a crop enabled for diagnosis, or null.
+         */
+        put: operations["AdminDiagnosisSettingsController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/diagnosis/ai-models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the AI models of the diagnosis steps (admin)
+         * @description describeModel (B1) / verifyModel (B3): model picked by an admin, null = the env model in `defaults` is used.
+         */
+        get: operations["AdminDiagnosisSettingsController_getModels"];
+        /**
+         * Replace the AI models of the diagnosis steps (admin)
+         * @description Both fields are required; null = use the env model. Model id: letters, digits, `.`, `_`, `-`, at most 100 characters, not starting with `.`, `_` or `-` (DIAGNOSIS_INVALID_SETTINGS with `details.field` otherwise). The id is not checked against the provider: an unknown model makes diagnoses fail. Applies to diagnoses created afterwards.
+         */
+        put: operations["AdminDiagnosisSettingsController_updateModels"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/crops": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List crops supported by diagnosis (public)
+         * @description Enabled crops by display order. `plantParts` = the parts a photo of the crop may show (values for POST /diagnoses `images[].plantPart`, dropdown order); `cropStages` = labels of the stage codes used by its diseases.
+         */
+        get: operations["KnowledgeController_crops"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/diseases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List diseases of a crop, by Vietnamese name (public)
+         * @description Filter by category; `q` matches Vietnamese/English names and aliases, ignoring case and diacritics. No pagination (~50 per crop).
+         */
+        get: operations["KnowledgeController_diseases"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/diseases/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the Vietnamese detail of a disease (public)
+         * @description No chemical recommendations. When `verification` is not SOURCED, show that experts have not confirmed the content yet. `article` = path and status of the disease's main article (GET /knowledge/articles/:cropSlug/:slug), null when it has none or it is unpublished; `variants[].article` = the variant's own article, if any; `similarDiseases[].article` = the similar disease's main article, if any.
+         */
+        get: operations["KnowledgeController_disease"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/articles/crops": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List crops that have disease articles (public)
+         * @description Crops with at least one article, by display order, including crops not yet enabled for diagnosis (`diagnosisEnabled` = false). `slug` is the value for `crop` of GET /knowledge/articles. Sent with `Cache-Control: public, max-age=60`.
+         */
+        get: operations["ArticleController_crops"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/articles/sitemap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List indexable articles for the sitemap (public)
+         * @description REVIEWED, published articles only, unpaginated; `crops[].updatedAt` = latest update of the crop's articles. Sent with `Cache-Control: public, max-age=60`.
+         */
+        get: operations["ArticleController_sitemap"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/articles/top": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the top articles of every crop (public)
+         * @description One entry per crop, by crop sortOrder; each crop's articles in the order an admin chose (PUT /admin/knowledge/crops/:cropSlug/top-articles), published only, at most the admin's `limit`. Crops without a published top article are left out; `crops` is empty when none were chosen. Sent with `Cache-Control: public, max-age=60`.
+         */
+        get: operations["ArticleController_top"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List article summaries of a crop, by title (public)
+         * @description Vietnamese title order, keyset-paginated (`nextCursor`). Unpublished articles are left out; DRAFT ones are included: render them noindex. `category` filters by the category of the article's disease. `diseaseCodes` keeps the articles about any of the given diseases (`?diseaseCodes=RICE_BLAST&diseaseCodes=RICE_BPH` or `?diseaseCodes=RICE_BLAST,RICE_BPH`, 1..50 codes); with `category`, both must match. Variant articles are listed too (`variant` set). Sent with `Cache-Control: public, max-age=60`.
+         */
+        get: operations["ArticleController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge/articles/{cropSlug}/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a disease article, ready to render (public)
+         * @description `markdown` has public image URLs and `/diseases/<CODE>` links turned into article paths (a variant id without its own article links to the disease's main article; plain text when there is no article); a variant article has `variant` + `parentArticle` (breadcrumb), a main article lists `variantArticles` (each with its `coverUrl`); every article has a 16:9 `cover` (cards, Open Graph); directives `:::warning`, `:::tip`, `::disease-card{code="..."}` and `::cta-diagnosis` stay for the client. `relatedDiseases` feeds the cards. An unpublished article answers 404 and counts as no article in links. Sent with `Cache-Control: public, max-age=60`.
+         */
+        get: operations["ArticleController_detail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/knowledge/crops": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List every crop with its article counts (admin)
+         * @description All crops by display order, including crops not enabled for diagnosis and crops without any article. `targetCount` = diseases + variants of the crop; `targetCount - articleCount` entries have no article yet (see GET /admin/knowledge/crops/:cropSlug/articles).
+         */
+        get: operations["AdminArticleController_crops"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/knowledge/crops/{cropSlug}/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the diseases of a crop with their articles (admin)
+         * @description Every disease of the crop by Vietnamese name, each followed by its variants (KB order). `article` is the article in any visibility (`origin` AI | ADMIN | AI_REVIEWED, `isPublished`), or null when none is written yet: create it with POST /admin/knowledge/articles and `code`.
+         */
+        get: operations["AdminArticleController_targets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/knowledge/articles/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the stored content of an article (admin)
+         * @description `code` = variant code, else disease code (main article). Published or not. `markdown` is as stored (image file names, `/diseases/<CODE>` links): send it back as is in PUT. `images[].url` is the public URL to preview.
+         */
+        get: operations["AdminArticleController_detail"];
+        /**
+         * Replace the content of an article (admin)
+         * @description Slug, crop and code stay; visibility is kept. `images` is the full list: an entry without `tmpKey` keeps the stored image of that `file` (alt / caption / credit updated), images left out are dropped. The article becomes REVIEWED by the caller; an AI article becomes AI_REVIEWED and the crop pack seed no longer overwrites it. Content rules (`details.issues` of KNOWLEDGE_ARTICLE_INVALID_CONTENT lists every broken one): title 1-70 chars, summary 50-160 chars, image `file` names like `dao-on-1.webp` (lowercase letters, digits, hyphens + .webp) without duplicates, `cover` one of them, every body image (`![alt](<file>)`) listed, `/diseases/<CODE>` links and `::disease-card{code="..."}` (disease ids only) inside the crop KB, no HTML outside code. A new image is a key from POST /media/presign-url (jpg, png or webp, uploaded by the caller); it is stored as webp at most 1600px wide. The client page cache is revalidated in the background.
+         */
+        put: operations["AdminArticleController_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/knowledge/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Write the article of a disease or variant without one (admin)
+         * @description Created published, `origin` ADMIN, `status` REVIEWED by the caller. `slug` is fixed afterwards and unique in the crop. A variant article needs the main article of its disease. Every image needs a `tmpKey`. Content rules (`details.issues` of KNOWLEDGE_ARTICLE_INVALID_CONTENT lists every broken one): title 1-70 chars, summary 50-160 chars, image `file` names like `dao-on-1.webp` (lowercase letters, digits, hyphens + .webp) without duplicates, `cover` one of them, every body image (`![alt](<file>)`) listed, `/diseases/<CODE>` links and `::disease-card{code="..."}` (disease ids only) inside the crop KB, no HTML outside code. A new image is a key from POST /media/presign-url (jpg, png or webp, uploaded by the caller); it is stored as webp at most 1600px wide. The client page cache is revalidated in the background.
+         */
+        post: operations["AdminArticleController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/knowledge/articles/{code}/unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hide an article from the public API (admin)
+         * @description The page answers 404, the article leaves lists, counts, the sitemap and disease detail, and links to it render as plain text. It stays editable. Already hidden = no-op.
+         */
+        post: operations["AdminArticleController_unpublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/knowledge/articles/{code}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Show an unpublished article again (admin)
+         * @description Already published = no-op.
+         */
+        post: operations["AdminArticleController_publish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/knowledge/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the top articles settings (admin)
+         * @description `limit` defaults to 10 until saved.
+         */
+        get: operations["AdminTopArticleController_settings"];
+        /**
+         * Change the number of top articles per crop (admin)
+         * @description `limit` 1..50. Lists already longer stay as they are; the public list shows their first `limit` articles.
+         */
+        put: operations["AdminTopArticleController_updateSettingsOf"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/knowledge/crops/{cropSlug}/top-articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the top articles of a crop (admin)
+         * @description In order, with the current `limit`. Articles unpublished since they were chosen stay listed (`isPublished` false); the public list skips them.
+         */
+        get: operations["AdminTopArticleController_topArticles"];
+        /**
+         * Replace the top articles of a crop (admin)
+         * @description `articleSlugs` in order (first = top), at most `limit`, each a published article of the crop, no duplicates; an empty list clears it. KNOWLEDGE_TOP_ARTICLES_INVALID `details` = { reason, articles } with the offending slugs.
+         */
+        put: operations["AdminTopArticleController_setTopArticlesOf"];
         post?: never;
         delete?: never;
         options?: never;
@@ -729,7 +1349,7 @@ export interface components {
             phone: string | null;
             username: string;
             /** @enum {string} */
-            role: "FARMER" | "DISTRIBUTOR";
+            role: "FARMER" | "DISTRIBUTOR" | "ADMIN";
             /** @enum {string|null} */
             bussinessType: "AGRICULTURAL_CHEMICAL_SUPPLIES" | "SEEDS_SEEDLINGS" | "AQUACULTURE_SEEDLINGS" | null;
             bussinessLicense: string | null;
@@ -971,12 +1591,90 @@ export interface components {
             addMedia?: components["schemas"]["ProductMediaDto"][];
             removeMediaIds?: string[];
         };
+        ProductSuggestionContentResponse: {
+            name: string;
+            description: string;
+            categoryId: string | null;
+            /** @enum {string|null} */
+            unit: "kg" | "10kg" | "50kg" | "100kg" | "bag" | "piece" | "ton" | null;
+        };
+        SuggestProductResponse: {
+            /** @enum {string} */
+            status: "UNREADABLE" | "NOT_FOUND" | "FOUND";
+            remaining: number;
+            detectedName?: string;
+            suggestion?: components["schemas"]["ProductSuggestionContentResponse"];
+        };
         CategoryResponse: {
             id: string;
             name: string;
         };
         ListCategoriesResponse: {
             items: components["schemas"]["CategoryResponse"][];
+        };
+        CatalogItemResponse: {
+            id: string;
+            name: string;
+            description: string;
+            categoryId: string | null;
+            /** @enum {string|null} */
+            unit: "kg" | "10kg" | "50kg" | "100kg" | "bag" | "piece" | "ton" | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ListCatalogItemsResponse: {
+            items: components["schemas"]["CatalogItemResponse"][];
+            total: number;
+            page: number;
+            limit: number;
+        };
+        CreateCatalogItemDto: {
+            name: string;
+            description: string;
+            categoryId?: string;
+            /** @enum {string} */
+            unit?: "kg" | "10kg" | "50kg" | "100kg" | "bag" | "piece" | "ton";
+        };
+        UpdateCatalogItemDto: {
+            name?: string;
+            description?: string;
+            categoryId?: string | null;
+            /** @enum {string|null} */
+            unit?: "kg" | "10kg" | "50kg" | "100kg" | "bag" | "piece" | "ton" | null;
+        };
+        ProductSuggestionSettingsResponse: {
+            invalidImageLimit: number;
+            notFoundLimit: number;
+        };
+        UpdateProductSuggestionSettingsDto: {
+            invalidImageLimit: number;
+            notFoundLimit: number;
+        };
+        ProductSuggestionDefaultAiModelResponse: {
+            model: string;
+        };
+        ProductSuggestionAiModelResponse: {
+            model: string | null;
+            defaults: components["schemas"]["ProductSuggestionDefaultAiModelResponse"];
+        };
+        UpdateProductSuggestionAiModelDto: {
+            model: string | null;
+        };
+        ProductSuggestionMissResponse: {
+            normalizedName: string;
+            latestDetectedName: string;
+            count: number;
+            distributorCount: number;
+            /** Format: date-time */
+            lastSeenAt: string;
+        };
+        ListProductSuggestionMissesResponse: {
+            items: components["schemas"]["ProductSuggestionMissResponse"][];
+            total: number;
+            page: number;
+            limit: number;
         };
         ReviewStarCountsResponse: {
             1: number;
@@ -1066,6 +1764,9 @@ export interface components {
             messageId: string;
             senderId: string;
             message: string;
+            /** @enum {string} */
+            type: "TEXT" | "DIAGNOSIS_REPORT";
+            diagnosisId: string | null;
         };
         ChatRoomResponse: {
             roomId: string;
@@ -1088,6 +1789,9 @@ export interface components {
             senderUsername: string | null;
             senderAvatar: string | null;
             message: string;
+            /** @enum {string} */
+            type: "TEXT" | "DIAGNOSIS_REPORT";
+            diagnosisId: string | null;
             /** Format: date-time */
             createdAt: string;
         };
@@ -1095,6 +1799,619 @@ export interface components {
             messages: components["schemas"]["RoomMessageResponse"][];
             nextCursor: string | null;
         };
+        ChatDiagnosisConfidenceResponse: {
+            level: string;
+            score: number;
+        };
+        ChatDiagnosisSummaryDiseaseResponse: {
+            diseaseCode: string;
+            diseaseName: string;
+            category: string | null;
+            confidence: components["schemas"]["ChatDiagnosisConfidenceResponse"];
+            imageCount: number;
+        };
+        ChatDiagnosisSummaryResponse: {
+            hasDisease: boolean;
+            conflict: boolean;
+            diseases: components["schemas"]["ChatDiagnosisSummaryDiseaseResponse"][];
+        };
+        ChatDiagnosisImageDiseaseResponse: {
+            category: string | null;
+            diseaseCode: string;
+            variantCode: string | null;
+            diseaseName: string;
+            variantName: string | null;
+            confidence: components["schemas"]["ChatDiagnosisConfidenceResponse"];
+        };
+        ChatDiagnosisBoxResponse: {
+            x: number;
+            y: number;
+            w: number;
+            h: number;
+        };
+        ChatDiagnosedDiseaseResponse: {
+            diseaseCode: string;
+            variantCode: string | null;
+            diseaseName: string;
+            variantName: string | null;
+            confidence: components["schemas"]["ChatDiagnosisConfidenceResponse"];
+        };
+        ChatDiagnosisRegionResponse: {
+            box: components["schemas"]["ChatDiagnosisBoxResponse"];
+            symptom: string;
+            features: string[];
+            diagnosis: components["schemas"]["ChatDiagnosedDiseaseResponse"] | null;
+        };
+        ChatDiagnosisImageResponse: {
+            index: number;
+            mediaId: string | null;
+            url: string | null;
+            plantPart: string;
+            detectedPart: string | null;
+            status: string | null;
+            message: string | null;
+            diseases: components["schemas"]["ChatDiagnosisImageDiseaseResponse"][];
+            regions: components["schemas"]["ChatDiagnosisRegionResponse"][];
+        };
+        MessageDiagnosisReportResponse: {
+            id: string;
+            status: string;
+            cropType: string;
+            note: string | null;
+            summary: components["schemas"]["ChatDiagnosisSummaryResponse"] | null;
+            images: components["schemas"]["ChatDiagnosisImageResponse"][];
+            userFeedback: string | null;
+            disclaimer: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            completedAt: string | null;
+        };
+        CreateDiagnosisResponse: {
+            id: string;
+            /** @enum {string} */
+            status: "PROCESSING" | "COMPLETED" | "FAILED";
+        };
+        DiagnosisListDiseaseResponse: {
+            diseaseCode: string;
+            diseaseName: string;
+            /** @enum {string} */
+            confidenceLevel: "HIGH" | "MEDIUM" | "LOW";
+        };
+        DiagnosisListItemResponse: {
+            id: string;
+            /** @enum {string} */
+            status: "PROCESSING" | "COMPLETED" | "FAILED";
+            cropType: string;
+            thumbnail: string | null;
+            diseases: components["schemas"]["DiagnosisListDiseaseResponse"][];
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ListMyDiagnosesResponse: {
+            diagnoses: components["schemas"]["DiagnosisListItemResponse"][];
+            nextCursor: string | null;
+        };
+        DiagnosisFormSettingsResponse: {
+            defaultCropType: string | null;
+            minImages: number;
+            maxImages: number;
+            maxImageBytes: number;
+            maxImageWidth: number;
+            maxImageHeight: number;
+            remainingToday: number | null;
+        };
+        DiagnosisConfidenceResponse: {
+            /** @enum {string} */
+            level: "HIGH" | "MEDIUM" | "LOW";
+            score: number;
+        };
+        DiagnosisSummaryDiseaseResponse: {
+            diseaseCode: string;
+            diseaseName: string;
+            category: Record<string, never>;
+            confidence: components["schemas"]["DiagnosisConfidenceResponse"];
+            imageCount: number;
+        };
+        DiagnosisSummaryResponse: {
+            hasDisease: boolean;
+            conflict: boolean;
+            diseases: components["schemas"]["DiagnosisSummaryDiseaseResponse"][];
+        };
+        DiagnosisImageDiseaseResponse: {
+            category: Record<string, never>;
+            diseaseCode: string;
+            variantCode: string | null;
+            diseaseName: string;
+            variantName: string | null;
+            confidence: components["schemas"]["DiagnosisConfidenceResponse"];
+        };
+        DiagnosisBoxResponse: {
+            x: number;
+            y: number;
+            w: number;
+            h: number;
+        };
+        DiagnosedDiseaseResponse: {
+            diseaseCode: string;
+            variantCode: string | null;
+            diseaseName: string;
+            variantName: string | null;
+            confidence: components["schemas"]["DiagnosisConfidenceResponse"];
+        };
+        DiagnosisRegionResponse: {
+            box: components["schemas"]["DiagnosisBoxResponse"];
+            symptom: string;
+            features: string[];
+            diagnosis: components["schemas"]["DiagnosedDiseaseResponse"] | null;
+        };
+        DiagnosisImageResponse: {
+            index: number;
+            mediaId: string | null;
+            url: string | null;
+            /** @enum {string} */
+            plantPart: "LEAF" | "SHEATH" | "STEM" | "PANICLE" | "ROOT" | "WHOLE_PLANT" | "SHOOT" | "BRANCH" | "TRUNK" | "COLLAR" | "FLOWER" | "FRUIT" | "ARIL";
+            /** @enum {string|null} */
+            detectedPart: "LEAF" | "SHEATH" | "STEM" | "PANICLE" | "ROOT" | "WHOLE_PLANT" | "SHOOT" | "BRANCH" | "TRUNK" | "COLLAR" | "FLOWER" | "FRUIT" | "ARIL" | null;
+            /** @enum {string|null} */
+            status: "DISEASED" | "HEALTHY" | "UNCERTAIN" | "NOT_TARGET_CROP" | "LOW_QUALITY" | null;
+            message: string | null;
+            diseases: components["schemas"]["DiagnosisImageDiseaseResponse"][];
+            regions: components["schemas"]["DiagnosisRegionResponse"][];
+        };
+        GetDiagnosisResponse: {
+            id: string;
+            /** @enum {string} */
+            status: "PROCESSING" | "COMPLETED" | "FAILED";
+            cropType: string;
+            note: string | null;
+            summary: components["schemas"]["DiagnosisSummaryResponse"] | null;
+            images: components["schemas"]["DiagnosisImageResponse"][];
+            /** @enum {string|null} */
+            userFeedback: "CORRECT" | "WRONG" | "UNSURE" | null;
+            disclaimer: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            completedAt: string | null;
+        };
+        SubmitDiagnosisFeedbackDto: {
+            /** @enum {string} */
+            feedback: "CORRECT" | "WRONG" | "UNSURE";
+            comment?: string;
+        };
+        DiagnosisSettingsResponse: {
+            dailyFreeLimit: number;
+            defaultCropType: string | null;
+            maxImages: number;
+            maxImageBytes: number;
+            maxImageWidth: number;
+            maxImageHeight: number;
+        };
+        UpdateDiagnosisSettingsDto: {
+            dailyFreeLimit: number;
+            defaultCropType: string | null;
+            maxImages: number;
+            maxImageBytes: number;
+            maxImageWidth: number;
+            maxImageHeight: number;
+        };
+        DiagnosisVisionModelsResponse: {
+            describeModel: string;
+            verifyModel: string;
+        };
+        DiagnosisAiModelsResponse: {
+            describeModel: string | null;
+            verifyModel: string | null;
+            defaults: components["schemas"]["DiagnosisVisionModelsResponse"];
+        };
+        UpdateDiagnosisAiModelsDto: {
+            describeModel: string | null;
+            verifyModel: string | null;
+        };
+        CropPlantPartResponse: {
+            /** @enum {string} */
+            code: "LEAF" | "SHEATH" | "STEM" | "PANICLE" | "ROOT" | "WHOLE_PLANT" | "SHOOT" | "BRANCH" | "TRUNK" | "COLLAR" | "FLOWER" | "FRUIT" | "ARIL";
+            nameVi: string;
+        };
+        CropStageResponse: {
+            /** @enum {string} */
+            code: "SEEDLING" | "TILLERING" | "BOOTING" | "HEADING" | "MILK" | "MATURITY" | "YOUNG_TREE" | "FLUSHING" | "FLOWERING" | "FRUIT_SET" | "FRUIT_DEVELOPMENT" | "HARVEST" | "TREE_RECOVERY";
+            nameVi: string;
+        };
+        CropItemResponse: {
+            code: string;
+            nameVi: string;
+            plantParts: components["schemas"]["CropPlantPartResponse"][];
+            cropStages: components["schemas"]["CropStageResponse"][];
+        };
+        ListCropsResponse: {
+            crops: components["schemas"]["CropItemResponse"][];
+        };
+        DiseaseItemResponse: {
+            code: string;
+            nameVi: string;
+            nameEn: string;
+            scientificName: string | null;
+            aliases: string[];
+            /** @enum {string} */
+            category: "DISEASE" | "PEST" | "DISORDER";
+            /** @enum {string} */
+            agentType: "FUNGUS" | "OOMYCETE" | "ALGA" | "BACTERIA" | "VIRUS" | "NEMATODE" | "INSECT" | "MITE" | "MOLLUSC" | "VERTEBRATE" | "NUTRIENT" | "ABIOTIC" | "COMPLEX" | "UNKNOWN";
+            affectedParts: ("LEAF" | "SHEATH" | "STEM" | "PANICLE" | "ROOT" | "WHOLE_PLANT" | "SHOOT" | "BRANCH" | "TRUNK" | "COLLAR" | "FLOWER" | "FRUIT" | "ARIL")[];
+            /** @enum {string} */
+            verification: "SOURCED" | "SECONDARY" | "GEMINI_REVIEWED" | "GEMINI_ONLY";
+        };
+        ListDiseasesResponse: {
+            diseases: components["schemas"]["DiseaseItemResponse"][];
+        };
+        DiseaseArticleResponse: {
+            path: string;
+            /** @enum {string} */
+            status: "DRAFT" | "REVIEWED";
+        };
+        DiseaseVariantResponse: {
+            code: string;
+            name: string;
+            affectedParts: string;
+            symptoms: string[];
+            article: components["schemas"]["DiseaseArticleResponse"] | null;
+        };
+        DiseaseTreatmentsResponse: {
+            cultural: string[];
+            biological: string[];
+            nutrition: string[];
+        };
+        SimilarDiseaseResponse: {
+            code: string;
+            name: string;
+            distinguishingFeature: string | null;
+            article: components["schemas"]["DiseaseArticleResponse"] | null;
+        };
+        DiseaseReferenceResponse: {
+            title: string;
+            url: string;
+        };
+        DiseaseDetailResponse: {
+            code: string;
+            nameVi: string;
+            nameEn: string;
+            scientificName: string | null;
+            aliases: string[];
+            /** @enum {string} */
+            category: "DISEASE" | "PEST" | "DISORDER";
+            /** @enum {string} */
+            agentType: "FUNGUS" | "OOMYCETE" | "ALGA" | "BACTERIA" | "VIRUS" | "NEMATODE" | "INSECT" | "MITE" | "MOLLUSC" | "VERTEBRATE" | "NUTRIENT" | "ABIOTIC" | "COMPLEX" | "UNKNOWN";
+            affectedParts: ("LEAF" | "SHEATH" | "STEM" | "PANICLE" | "ROOT" | "WHOLE_PLANT" | "SHOOT" | "BRANCH" | "TRUNK" | "COLLAR" | "FLOWER" | "FRUIT" | "ARIL")[];
+            pathogens: string[];
+            symptoms: string[];
+            variants: components["schemas"]["DiseaseVariantResponse"][];
+            transmissionMode: string | null;
+            cropStages: ("SEEDLING" | "TILLERING" | "BOOTING" | "HEADING" | "MILK" | "MATURITY" | "YOUNG_TREE" | "FLUSHING" | "FLOWERING" | "FRUIT_SET" | "FRUIT_DEVELOPMENT" | "HARVEST" | "TREE_RECOVERY")[];
+            favorableConditions: string[];
+            treatments: components["schemas"]["DiseaseTreatmentsResponse"];
+            similarDiseases: components["schemas"]["SimilarDiseaseResponse"][];
+            references: components["schemas"]["DiseaseReferenceResponse"][];
+            /** @enum {string} */
+            verification: "SOURCED" | "SECONDARY" | "GEMINI_REVIEWED" | "GEMINI_ONLY";
+            kbVersion: string;
+            article: components["schemas"]["DiseaseArticleResponse"] | null;
+        };
+        ArticleCropItemResponse: {
+            code: string;
+            slug: string;
+            nameVi: string;
+            diagnosisEnabled: boolean;
+            articleCount: number;
+        };
+        ListArticleCropsResponse: {
+            crops: components["schemas"]["ArticleCropItemResponse"][];
+        };
+        ArticleSitemapCropResponse: {
+            slug: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ArticleSitemapItemResponse: {
+            path: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ArticleSitemapResponse: {
+            crops: components["schemas"]["ArticleSitemapCropResponse"][];
+            articles: components["schemas"]["ArticleSitemapItemResponse"][];
+        };
+        ArticleCropResponse: {
+            code: string;
+            slug: string;
+            nameVi: string;
+            diagnosisEnabled: boolean;
+        };
+        ArticleDiseaseSummaryResponse: {
+            code: string;
+            nameVi: string;
+            scientificName: string | null;
+            /** @enum {string} */
+            category: "DISEASE" | "PEST" | "DISORDER";
+        };
+        ArticleVariantSummaryResponse: {
+            code: string;
+            name: string;
+        };
+        ArticleListItemResponse: {
+            path: string;
+            slug: string;
+            title: string;
+            summary: string;
+            coverUrl: string | null;
+            /** @enum {string} */
+            status: "DRAFT" | "REVIEWED";
+            /** @enum {string} */
+            origin: "AI" | "ADMIN" | "AI_REVIEWED";
+            /** Format: date-time */
+            updatedAt: string;
+            disease: components["schemas"]["ArticleDiseaseSummaryResponse"] | null;
+            variant: components["schemas"]["ArticleVariantSummaryResponse"] | null;
+        };
+        TopArticlesGroupResponse: {
+            crop: components["schemas"]["ArticleCropResponse"];
+            articles: components["schemas"]["ArticleListItemResponse"][];
+        };
+        ListTopArticlesResponse: {
+            crops: components["schemas"]["TopArticlesGroupResponse"][];
+        };
+        ListArticlesResponse: {
+            crop: components["schemas"]["ArticleCropResponse"];
+            articles: components["schemas"]["ArticleListItemResponse"][];
+            nextCursor: string | null;
+        };
+        ArticleDiseaseResponse: {
+            code: string;
+            nameVi: string;
+            nameEn: string;
+            scientificName: string | null;
+            aliases: string[];
+            /** @enum {string} */
+            category: "DISEASE" | "PEST" | "DISORDER";
+            /** @enum {string} */
+            agentType: "FUNGUS" | "OOMYCETE" | "ALGA" | "BACTERIA" | "VIRUS" | "NEMATODE" | "INSECT" | "MITE" | "MOLLUSC" | "VERTEBRATE" | "NUTRIENT" | "ABIOTIC" | "COMPLEX" | "UNKNOWN";
+            affectedParts: ("LEAF" | "SHEATH" | "STEM" | "PANICLE" | "ROOT" | "WHOLE_PLANT" | "SHOOT" | "BRANCH" | "TRUNK" | "COLLAR" | "FLOWER" | "FRUIT" | "ARIL")[];
+            /** @enum {string} */
+            verification: "SOURCED" | "SECONDARY" | "GEMINI_REVIEWED" | "GEMINI_ONLY";
+        };
+        ArticleVariantResponse: {
+            code: string;
+            name: string;
+            affectedParts: string;
+        };
+        ArticleLinkResponse: {
+            path: string;
+            title: string;
+        };
+        VariantArticleResponse: {
+            path: string;
+            title: string;
+            variantCode: string;
+            variantName: string;
+            coverUrl: string | null;
+        };
+        ArticleCoverResponse: {
+            url: string;
+            alt: string;
+            width: number;
+            height: number;
+        };
+        ArticleImageCreditResponse: {
+            source: string;
+            author: string;
+            license: string;
+            url: string;
+        };
+        ArticleImageResponse: {
+            url: string;
+            alt: string;
+            caption: string | null;
+            width: number;
+            height: number;
+            credit: components["schemas"]["ArticleImageCreditResponse"];
+        };
+        RelatedDiseaseResponse: {
+            code: string;
+            nameVi: string;
+            /** @enum {string} */
+            category: "DISEASE" | "PEST" | "DISORDER";
+            path: string | null;
+            coverUrl: string | null;
+        };
+        ArticleSourceResponse: {
+            title: string;
+            url: string;
+        };
+        ArticleDetailResponse: {
+            id: string;
+            path: string;
+            slug: string;
+            title: string;
+            summary: string;
+            markdown: string;
+            crop: components["schemas"]["ArticleCropResponse"];
+            disease: components["schemas"]["ArticleDiseaseResponse"] | null;
+            variant: components["schemas"]["ArticleVariantResponse"] | null;
+            parentArticle: components["schemas"]["ArticleLinkResponse"] | null;
+            variantArticles: components["schemas"]["VariantArticleResponse"][];
+            cover: components["schemas"]["ArticleCoverResponse"] | null;
+            images: components["schemas"]["ArticleImageResponse"][];
+            relatedDiseases: components["schemas"]["RelatedDiseaseResponse"][];
+            sources: components["schemas"]["ArticleSourceResponse"][];
+            /** @enum {string} */
+            status: "DRAFT" | "REVIEWED";
+            /** @enum {string} */
+            origin: "AI" | "ADMIN" | "AI_REVIEWED";
+            reviewedBy: string | null;
+            /** Format: date-time */
+            reviewedAt: string | null;
+            /** Format: date-time */
+            publishedAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AdminArticleCropItemResponse: {
+            code: string;
+            slug: string;
+            nameVi: string;
+            diagnosisEnabled: boolean;
+            targetCount: number;
+            articleCount: number;
+            publishedCount: number;
+        };
+        ListAdminArticleCropsResponse: {
+            crops: components["schemas"]["AdminArticleCropItemResponse"][];
+        };
+        AdminArticleCropResponse: {
+            code: string;
+            slug: string;
+            nameVi: string;
+        };
+        AdminArticleSummaryResponse: {
+            slug: string;
+            title: string;
+            path: string;
+            /** @enum {string} */
+            origin: "AI" | "ADMIN" | "AI_REVIEWED";
+            isPublished: boolean;
+            /** @enum {string} */
+            status: "DRAFT" | "REVIEWED";
+            editedBy: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AdminArticleTargetResponse: {
+            code: string;
+            diseaseCode: string;
+            variantCode: string | null;
+            nameVi: string;
+            /** @enum {string} */
+            category: "DISEASE" | "PEST" | "DISORDER";
+            article: components["schemas"]["AdminArticleSummaryResponse"] | null;
+        };
+        ListAdminArticleTargetsResponse: {
+            crop: components["schemas"]["AdminArticleCropResponse"];
+            targets: components["schemas"]["AdminArticleTargetResponse"][];
+        };
+        AdminArticleCropRefResponse: {
+            code: string;
+            slug: string;
+        };
+        AdminArticleImageCreditResponse: {
+            source: string;
+            author: string;
+            license: string;
+            url: string;
+        };
+        AdminArticleImageResponse: {
+            file: string;
+            url: string;
+            width: number;
+            height: number;
+            alt: string;
+            caption: string | null;
+            credit: components["schemas"]["AdminArticleImageCreditResponse"];
+        };
+        AdminArticleSourceResponse: {
+            title: string;
+            url: string;
+        };
+        AdminArticleDetailResponse: {
+            code: string;
+            crop: components["schemas"]["AdminArticleCropRefResponse"];
+            diseaseCode: string | null;
+            variantCode: string | null;
+            slug: string;
+            path: string;
+            title: string;
+            summary: string;
+            markdown: string;
+            cover: string | null;
+            images: components["schemas"]["AdminArticleImageResponse"][];
+            sources: components["schemas"]["AdminArticleSourceResponse"][];
+            /** @enum {string} */
+            status: "DRAFT" | "REVIEWED";
+            reviewedBy: string | null;
+            /** Format: date-time */
+            reviewedAt: string | null;
+            /** @enum {string} */
+            origin: "AI" | "ADMIN" | "AI_REVIEWED";
+            isPublished: boolean;
+            editedBy: string | null;
+            kbVersion: string;
+            /** Format: date-time */
+            publishedAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ArticleImageCreditDto: {
+            source: string;
+            author: string;
+            license: string;
+            url: string;
+        };
+        AdminArticleImageDto: {
+            file: string;
+            tmpKey?: string;
+            alt: string;
+            caption?: string | null;
+            credit: components["schemas"]["ArticleImageCreditDto"];
+        };
+        ArticleSourceDto: {
+            title: string;
+            url: string;
+        };
+        CreateArticleDto: {
+            code: string;
+            slug: string;
+            title: string;
+            summary: string;
+            markdown: string;
+            cover: string;
+            images: components["schemas"]["AdminArticleImageDto"][];
+            sources: components["schemas"]["ArticleSourceDto"][];
+        };
+        CreateArticleResponse: {
+            code: string;
+            slug: string;
+            path: string;
+        };
+        UpdateArticleDto: {
+            title: string;
+            summary: string;
+            markdown: string;
+            cover: string;
+            images: components["schemas"]["AdminArticleImageDto"][];
+            sources: components["schemas"]["ArticleSourceDto"][];
+        };
+        UpdateArticleResponse: {
+            code: string;
+            slug: string;
+            path: string;
+            /** @enum {string} */
+            origin: "AI" | "ADMIN" | "AI_REVIEWED";
+        };
+        ArticleVisibilityResponse: {
+            code: string;
+            isPublished: boolean;
+        };
+        TopArticleSettingsResponse: {
+            limit: number;
+        };
+        UpdateTopArticleSettingsDto: {
+            limit: number;
+        };
+        CropTopArticlesResponse: {
+            crop: components["schemas"]["AdminArticleCropResponse"];
+            limit: number;
+            articles: components["schemas"]["AdminArticleSummaryResponse"][];
+        };
+        SetCropTopArticlesDto: Record<string, never>;
     };
     responses: never;
     parameters: never;
@@ -2306,6 +3623,68 @@ export interface operations {
             };
         };
     };
+    ProductSuggestionController_suggest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** @description One product photo */
+                    image: string[];
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestProductResponse"];
+                };
+            };
+            /** @description PRODUCT_SUGGESTION_INVALID_IMAGE */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_SELLER_NOT_ALLOWED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_SUGGESTION_QUOTA_EXCEEDED */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
     CategoryController_list: {
         parameters: {
             query?: never;
@@ -2321,6 +3700,472 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ListCategoriesResponse"];
+                };
+            };
+        };
+    };
+    AdminProductCatalogController_list: {
+        parameters: {
+            query?: {
+                search?: string;
+                page?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListCatalogItemsResponse"];
+                };
+            };
+            /** @description Request validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminProductCatalogController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateCatalogItemDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogItemResponse"];
+                };
+            };
+            /** @description Request validation failed, or: PRODUCT_CATALOG_ITEM_INVALID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_CATEGORY_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_CATALOG_ITEM_NAME_TAKEN */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminProductCatalogController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                catalogItemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Request validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_CATALOG_ITEM_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminProductCatalogController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                catalogItemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCatalogItemDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CatalogItemResponse"];
+                };
+            };
+            /** @description Request validation failed, or: PRODUCT_CATALOG_ITEM_INVALID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_CATALOG_ITEM_NOT_FOUND, PRODUCT_CATEGORY_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_CATALOG_ITEM_NAME_TAKEN */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminProductSuggestionController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductSuggestionSettingsResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminProductSuggestionController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProductSuggestionSettingsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductSuggestionSettingsResponse"];
+                };
+            };
+            /** @description Request validation failed, or: PRODUCT_SUGGESTION_INVALID_SETTINGS */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminProductSuggestionController_getModel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductSuggestionAiModelResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminProductSuggestionController_updateModel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProductSuggestionAiModelDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductSuggestionAiModelResponse"];
+                };
+            };
+            /** @description Request validation failed, or: PRODUCT_SUGGESTION_INVALID_SETTINGS */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminProductSuggestionController_misses: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListProductSuggestionMissesResponse"];
+                };
+            };
+            /** @description Request validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description PRODUCT_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
                 };
             };
         };
@@ -2780,6 +4625,1315 @@ export interface operations {
                 };
             };
             /** @description CHAT_ROOM_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    ChatController_messageDiagnosis: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roomId: string;
+                messageId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageDiagnosisReportResponse"];
+                };
+            };
+            /** @description Request validation failed, or: CHAT_MESSAGE_NOT_DIAGNOSIS_REPORT */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description CHAT_NOT_ROOM_MEMBER */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description CHAT_ROOM_NOT_FOUND, CHAT_MESSAGE_NOT_FOUND, CHAT_DIAGNOSIS_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    DiagnosisController_listMine: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListMyDiagnosesResponse"];
+                };
+            };
+            /** @description Request validation failed, or: DIAGNOSIS_INVALID_CURSOR */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    DiagnosisController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** @description 1..maxImages photos (GET /diagnoses/settings) */
+                    images: string[];
+                    /** @description JSON: { "cropType": "RICE", "images": [{ "plantPart": "LEAF" }], "note": "..." }; plantPart: one of the crop's plantParts (GET /knowledge/crops) */
+                    meta: string;
+                };
+            };
+        };
+        responses: {
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateDiagnosisResponse"];
+                };
+            };
+            /** @description Request validation failed, or: DIAGNOSIS_CROP_NOT_SUPPORTED, DIAGNOSIS_INVALID_IMAGE */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description DIAGNOSIS_USER_NOT_ALLOWED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description DIAGNOSIS_DAILY_LIMIT_EXCEEDED */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    DiagnosisController_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiagnosisFormSettingsResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    DiagnosisController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                diagnosisId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetDiagnosisResponse"];
+                };
+            };
+            /** @description Request validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description DIAGNOSIS_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    DiagnosisController_feedback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                diagnosisId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitDiagnosisFeedbackDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Request validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description DIAGNOSIS_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description DIAGNOSIS_NOT_COMPLETED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminDiagnosisSettingsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiagnosisSettingsResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description DIAGNOSIS_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminDiagnosisSettingsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateDiagnosisSettingsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiagnosisSettingsResponse"];
+                };
+            };
+            /** @description Request validation failed, or: DIAGNOSIS_INVALID_SETTINGS, DIAGNOSIS_CROP_NOT_SUPPORTED */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description DIAGNOSIS_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminDiagnosisSettingsController_getModels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiagnosisAiModelsResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description DIAGNOSIS_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminDiagnosisSettingsController_updateModels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateDiagnosisAiModelsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiagnosisAiModelsResponse"];
+                };
+            };
+            /** @description Request validation failed, or: DIAGNOSIS_INVALID_SETTINGS */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description DIAGNOSIS_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    KnowledgeController_crops: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListCropsResponse"];
+                };
+            };
+        };
+    };
+    KnowledgeController_diseases: {
+        parameters: {
+            query: {
+                crop: string;
+                category?: "DISEASE" | "PEST" | "DISORDER";
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListDiseasesResponse"];
+                };
+            };
+            /** @description Request validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_CROP_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    KnowledgeController_disease: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiseaseDetailResponse"];
+                };
+            };
+            /** @description Request validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_DISEASE_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    ArticleController_crops: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListArticleCropsResponse"];
+                };
+            };
+        };
+    };
+    ArticleController_sitemap: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArticleSitemapResponse"];
+                };
+            };
+        };
+    };
+    ArticleController_top: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListTopArticlesResponse"];
+                };
+            };
+        };
+    };
+    ArticleController_list: {
+        parameters: {
+            query: {
+                crop: string;
+                category?: "DISEASE" | "PEST" | "DISORDER";
+                diseaseCodes?: string[];
+                cursor?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListArticlesResponse"];
+                };
+            };
+            /** @description Request validation failed, or: KNOWLEDGE_ARTICLE_INVALID_CURSOR */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_CROP_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    ArticleController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cropSlug: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArticleDetailResponse"];
+                };
+            };
+            /** @description Request validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_CROP_NOT_FOUND, KNOWLEDGE_ARTICLE_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminArticleController_crops: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListAdminArticleCropsResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminArticleController_targets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cropSlug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListAdminArticleTargetsResponse"];
+                };
+            };
+            /** @description Request validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_CROP_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminArticleController_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminArticleDetailResponse"];
+                };
+            };
+            /** @description Request validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ARTICLE_NOT_FOUND, KNOWLEDGE_CROP_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminArticleController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateArticleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateArticleResponse"];
+                };
+            };
+            /** @description Request validation failed, or: KNOWLEDGE_ARTICLE_INVALID_CONTENT, KNOWLEDGE_ARTICLE_IMAGE_INVALID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ARTICLE_NOT_FOUND, KNOWLEDGE_CROP_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminArticleController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateArticleDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateArticleResponse"];
+                };
+            };
+            /** @description Request validation failed, or: KNOWLEDGE_ARTICLE_INVALID_CONTENT, KNOWLEDGE_ARTICLE_IMAGE_INVALID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_DISEASE_NOT_FOUND, KNOWLEDGE_CROP_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ARTICLE_ALREADY_EXISTS, KNOWLEDGE_ARTICLE_SLUG_TAKEN */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminArticleController_unpublish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArticleVisibilityResponse"];
+                };
+            };
+            /** @description Request validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ARTICLE_NOT_FOUND, KNOWLEDGE_CROP_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminArticleController_publish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArticleVisibilityResponse"];
+                };
+            };
+            /** @description Request validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ARTICLE_NOT_FOUND, KNOWLEDGE_CROP_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminTopArticleController_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopArticleSettingsResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminTopArticleController_updateSettingsOf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTopArticleSettingsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopArticleSettingsResponse"];
+                };
+            };
+            /** @description Request validation failed, or: KNOWLEDGE_INVALID_TOP_ARTICLE_SETTINGS */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminTopArticleController_topArticles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cropSlug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CropTopArticlesResponse"];
+                };
+            };
+            /** @description Request validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_CROP_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+        };
+    };
+    AdminTopArticleController_setTopArticlesOf: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cropSlug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetCropTopArticlesDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CropTopArticlesResponse"];
+                };
+            };
+            /** @description Request validation failed, or: KNOWLEDGE_TOP_ARTICLES_INVALID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorResponse"] | components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description AUTH_INVALID_ACCESS_TOKEN */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_ADMIN_REQUIRED */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainErrorResponse"];
+                };
+            };
+            /** @description KNOWLEDGE_CROP_NOT_FOUND */
             404: {
                 headers: {
                     [name: string]: unknown;

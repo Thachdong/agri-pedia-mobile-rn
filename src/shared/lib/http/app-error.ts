@@ -9,6 +9,8 @@ export const APP_ERROR_CODE = {
   NETWORK_ERROR: 'NETWORK_ERROR',
   TIMEOUT: 'TIMEOUT',
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+  /** Signed-URL upload refused by the storage (wrong Content-Type, > 10 MB, expired URL). */
+  UPLOAD_FAILED: 'UPLOAD_FAILED',
 } as const;
 
 export type TAppErrorInit = {

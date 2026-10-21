@@ -22,14 +22,20 @@ const WRAPPED = [
   { name: '@react-native-async-storage/async-storage', message: 'Use @/shared/lib/storage.' },
   { name: 'expo-location', message: 'Use @/shared/lib/device.' },
   { name: 'expo-image-picker', message: 'Use @/shared/lib/device.' },
+  { name: 'expo-document-picker', message: 'Use @/shared/lib/device.' },
+  { name: 'expo-image-manipulator', message: 'Use @/shared/lib/device (resizeImage).' },
+  { name: 'expo-file-system', message: 'Use @/shared/lib/device.' },
   { name: 'react-native-maps', message: 'Use AppMap from @/shared/lib/map.' },
   { name: '@gorhom/bottom-sheet', message: 'Use @/shared/lib/sheet.' },
   { name: 'sonner-native', message: 'Use @/shared/lib/toast.' },
+  { name: '@expo/vector-icons', message: 'Use Icon from @/shared/components/atoms.' },
 ];
 const WRAPPED_PATTERNS = [
   { group: ['@hookform/resolvers/*'], message: 'Use @/shared/lib/form.' },
   { group: ['@tanstack/react-query/*'], message: 'Use @/shared/lib/query.' },
+  { group: ['@expo/vector-icons/*'], message: 'Use Icon from @/shared/components/atoms.' },
 ];
+const isIconPackage = (name) => name === '@expo/vector-icons' || name === '@expo/vector-icons/*';
 
 const DEEP_FEATURE = {
   group: ['@/features/*/*'],
@@ -137,6 +143,17 @@ const architectureRules = [
     files: ['src/shared/components/molecules/**/*.{ts,tsx}'],
     rules: {
       '@typescript-eslint/no-restricted-imports': restrictImports([SHARED_TO_FEATURE, MOLECULE_UP, NO_DATA_HOOKS]),
+    },
+  },
+  // Icon atom = the only importer of @expo/vector-icons (not a lib concern: it renders UI).
+  {
+    files: ['src/shared/components/atoms/icon.tsx'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': restrictImports(
+        [SHARED_TO_FEATURE, ATOM_UP, NO_DATA_HOOKS],
+        WRAPPED.filter((p) => !isIconPackage(p.name)),
+        WRAPPED_PATTERNS.filter((p) => !p.group.some(isIconPackage)),
+      ),
     },
   },
   // 5. Expo Router route files must default-export the screen.

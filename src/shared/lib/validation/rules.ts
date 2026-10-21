@@ -34,6 +34,25 @@ export const rules = {
     lat: v.number().min(-90).max(90).required().messages(LOCATION_REQUIRED),
     long: v.number().min(-180).max(180).required().messages(LOCATION_REQUIRED),
   }),
+  /**
+   * A picked local file (`TPickedFile`): extension in `extensions` + at most `maxBytes` (size unknown → server decides).
+   * Optional pickers add `.allow(null)` (null = keep the current file).
+   */
+  pickedFile: ({ extensions, maxBytes }: { extensions: readonly string[]; maxBytes: number }) =>
+    v
+      .object({
+        extension: v
+          .string()
+          .valid(...extensions)
+          .required()
+          .messages({ 'any.only': `Chỉ nhận tệp ${extensions.join(', ')}` }),
+        size: v
+          .number()
+          .max(maxBytes)
+          .allow(null)
+          .messages({ 'number.max': `Tệp tối đa ${maxBytes / (1024 * 1024)} MB` }),
+      })
+      .unknown(true),
   /** OTP code (activate / reset password) — server accepts 4..10 digits, the client locks the configured `length`. */
   otpCode: (length: number) =>
     v

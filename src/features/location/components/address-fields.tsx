@@ -1,6 +1,7 @@
 import type { Ref } from 'react';
 import type { TextInput } from 'react-native';
 import { Text, View } from 'react-native';
+import type { TInputProps } from '@/shared/components/atoms';
 import { FormInput, SelectField } from '@/shared/components/molecules';
 import { cn } from '@/shared/lib/utils';
 import { TEXT } from '@/shared/theme';
@@ -19,6 +20,8 @@ export type TAddressFieldsProps = {
   disabled?: boolean;
   /** House number input — lets the form focus it (server error, next-field). */
   houseNumberRef?: Ref<TextInput>;
+  /** Text input component — `AppSheetTextInput` when the fields are inside a sheet. */
+  inputAs?: TInputProps['as'];
   className?: string;
 };
 
@@ -33,6 +36,7 @@ export function AddressFields({
   errors = {},
   disabled = false,
   houseNumberRef,
+  inputAs,
   className,
 }: TAddressFieldsProps) {
   const provinces = useProvinces();
@@ -79,6 +83,7 @@ export function AddressFields({
 
       <FormInput
         ref={houseNumberRef}
+        as={inputAs}
         label="Số nhà, tên đường"
         required
         value={value.houseNumber}

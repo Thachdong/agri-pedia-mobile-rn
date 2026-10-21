@@ -9,7 +9,8 @@ import {
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet';
 import { cssInterop } from 'nativewind';
-import { useCallback, useMemo, useRef, type ComponentRef, type ReactNode } from 'react';
+import { useCallback, useMemo, useRef, type ComponentRef, type ComponentType, type ReactNode, type Ref } from 'react';
+import type { TextInput, TextInputProps } from 'react-native';
 
 type TSheetRef = ComponentRef<typeof BottomSheetModal>;
 
@@ -29,7 +30,15 @@ export type TAppSheetProps = {
   accessibilityLabel?: string;
   /** false → dragging the content doesn't move the sheet (content with its own gestures, e.g. a map). Handle still drags. */
   contentPanningEnabled?: boolean;
+  /**
+   * Fixed heights (e.g. `['80%']`) instead of following the content. Required around an `AppSheetFlatList`:
+   * with dynamic sizing the list reports its full content height and the sheet can't size / scroll it.
+   * Children then fill the sheet (`flex-1` on the list's container).
+   */
+  snapPoints?: (string | number)[];
 };
+
+const FILL = { flex: 1 } as const;
 
 function renderBackdrop(props: BottomSheetBackdropProps) {
   return <BottomSheetBackdrop {...props} appearsOnIndex={0} disappearsOnIndex={-1} pressBehavior="close" />;
@@ -46,13 +55,19 @@ export function AppSheet({
   onDismiss,
   accessibilityLabel,
   contentPanningEnabled = true,
+  snapPoints,
 }: TAppSheetProps) {
   const Container = scrollable ? BottomSheetScrollView : BottomSheetView;
+  const isFixed = !!snapPoints;
   return (
     <BottomSheetModal
       ref={sheetRef}
-      enableDynamicSizing
+      enableDynamicSizing={!isFixed}
+      snapPoints={snapPoints}
       enablePanDownToClose
+      // A sheet opened from another sheet (SelectField options inside EditProfileSheet / ProductFormSheet) stacks on top.
+      // The default 'switch' minimizes the opener; the nested sheet lives in the opener's tree, so both ended up closed.
+      stackBehavior="push"
       enableContentPanningGesture={contentPanningEnabled}
       backdropComponent={renderBackdrop}
       keyboardBehavior="interactive"
@@ -61,7 +76,7 @@ export function AppSheet({
       onDismiss={onDismiss}
       accessibilityLabel={accessibilityLabel}
     >
-      <Container>{children}</Container>
+      <Container style={isFixed ? FILL : undefined}>{children}</Container>
     </BottomSheetModal>
   );
 }
@@ -77,8 +92,13 @@ export function useAppSheet() {
 // Third-party component → NativeWind needs an interop to turn `className` into `style`.
 cssInterop(BottomSheetTextInput, { className: 'style' });
 
-/** TextInput for use inside an AppSheet (keeps the sheet above the keyboard). Takes `className`. */
-export const AppSheetTextInput = BottomSheetTextInput;
+/**
+ * TextInput for use inside an AppSheet (keeps the sheet above the keyboard). Takes `className`.
+ * Typed as a plain TextInput (its ref is `TextInput | undefined` upstream) so it fits the `Input` atom's `as` prop.
+ */
+export const AppSheetTextInput = BottomSheetTextInput as unknown as ComponentType<
+  TextInputProps & { ref?: Ref<TextInput>; className?: string }
+>;
 
-/** FlatList for long lists inside an AppSheet (not `scrollable`): give it a fixed height so dynamic sizing can measure it. */
+/** FlatList for long lists inside an AppSheet with `snapPoints` (not `scrollable`, not dynamic sizing) — container `flex-1`. */
 export const AppSheetFlatList = BottomSheetFlatList;

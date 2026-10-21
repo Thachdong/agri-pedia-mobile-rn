@@ -1,14 +1,19 @@
 import { useLocalSearchParams } from 'expo-router';
-import { Text, View } from 'react-native';
-import { TEXT } from '@/shared/theme';
+import { DistributorProfileTabs } from '@/features/distributor';
+import { AccountHeaderActions } from '@/features/user';
+import { SiteHeader } from '@/shared/components/organisms';
+import { ProfileLayout } from '@/shared/components/templates';
 
-// Placeholder so login can land a DISTRIBUTOR on their profile. Replaced by the profile feature.
+/**
+ * Distributor profile "/profile/<id>" (ui-ux.md §7, image-5 / image-6) — public. Header as "/", then one list:
+ * info + buttons (Chỉnh sửa | Chat + Đánh giá) + tabs Sản Phẩm | Đánh giá.
+ */
 export default function ProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   return (
-    <View className="flex-1 items-center justify-center gap-2 bg-background p-4">
-      <Text className={TEXT.titleLarge}>Hồ sơ</Text>
-      <Text className={TEXT.bodyMedium}>{id}</Text>
-    </View>
+    <ProfileLayout
+      header={<SiteHeader actions={<AccountHeaderActions />} />}
+      body={<DistributorProfileTabs key={id} distributorId={id} />}
+    />
   );
 }

@@ -20,6 +20,10 @@ export const palette = {
   ratingStar: '#b7791f', // --palette-rating-star
   ratingStarEmpty: '#a9b8af', // --palette-rating-star-empty
   white: '#ffffff',
+  statusSuccess: '#2f7a4f', // --palette-status-success
+  statusSuccessSubtle: '#edf7f0', // --palette-status-success-subtle
+  statusWarning: '#8a5a00', // --palette-status-warning
+  statusWarningSubtle: '#fff7e0', // --palette-status-warning-subtle
   destructive: '#e7000b', // web --destructive: oklch(0.577 0.245 27.325)
 } as const;
 
@@ -49,6 +53,13 @@ export const semantic = {
   ratingMuted: palette.ratingStarEmpty,
   destructive: palette.destructive,
   destructiveForeground: palette.white,
+  /** Status (diagnosis result: healthy / high confidence, warnings / medium confidence) — web --success / --warning. */
+  success: palette.statusSuccess,
+  successForeground: palette.white,
+  successSubtle: palette.statusSuccessSubtle,
+  warning: palette.statusWarning,
+  warningForeground: palette.white,
+  warningSubtle: palette.statusWarningSubtle,
   border: palette.borderSubtle,
   borderSubtle: palette.borderSubtle,
   input: palette.borderSubtle,

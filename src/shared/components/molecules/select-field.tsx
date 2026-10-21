@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppSheet, AppSheetFlatList, AppSheetTextInput, useAppSheet } from '@/shared/lib/sheet';
 import { cn } from '@/shared/lib/utils';
 import { colors, TEXT } from '@/shared/theme';
@@ -28,6 +29,8 @@ export type TSelectFieldProps<T extends string> = {
 };
 
 const SEARCHABLE_FROM = 8;
+/** Long option lists (provinces, wards) → fixed-height sheet so the list scrolls (see AppSheet `snapPoints`). */
+const LONG_LIST_SNAP_POINTS = ['80%'];
 
 /** Lowercase, no Vietnamese diacritics — "Hà Nội" matches "ha noi". */
 const normalize = (text: string) =>
@@ -55,15 +58,23 @@ export function SelectField<T extends string>({
   className,
 }: TSelectFieldProps<T>) {
   const sheet = useAppSheet();
+  const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
   const isDisabled = disabled || loading;
-  const showSearch = searchable ?? options.length > SEARCHABLE_FROM;
+  const isLong = options.length > SEARCHABLE_FROM;
+  const showSearch = searchable ?? isLong;
   const selected = options.find((option) => option.value === value);
 
   const filtered = useMemo(() => {
     const needle = normalize(query);
     return needle ? options.filter((option) => normalize(option.label).includes(needle)) : options;
   }, [options, query]);
+
+  const emptyView = (
+    <Text className={cn(TEXT.bodyMedium, 'py-6 text-center text-muted-foreground')}>
+      {options.length === 0 ? emptyText : 'Không tìm thấy kết quả'}
+    </Text>
+  );
 
   const choose = (next: T) => {
     onChange(next);
@@ -114,8 +125,14 @@ export function SelectField<T extends string>({
         </View>
       )}
 
-      <AppSheet sheetRef={sheet.ref} accessibilityLabel={label} onDismiss={() => setQuery('')}>
-        <View className="gap-3 px-4 pb-6 pt-1">
+      <AppSheet
+        sheetRef={sheet.ref}
+        accessibilityLabel={label}
+        onDismiss={() => setQuery('')}
+        snapPoints={isLong ? LONG_LIST_SNAP_POINTS : undefined}
+      >
+        {/* Bottom padding clears the home indicator / gesture bar. */}
+        <View style={{ paddingBottom: insets.bottom + 16 }} className={cn('gap-3 px-4 pt-1', isLong && 'flex-1')}>
           <Text accessibilityRole="header" className={TEXT.titleMedium}>
             {label}
           </Text>
@@ -130,39 +147,56 @@ export function SelectField<T extends string>({
               className="min-h-11 rounded-lg border border-input bg-background px-3 text-base text-foreground"
             />
           )}
-          <View className={cn(options.length > SEARCHABLE_FROM ? 'h-96' : 'max-h-96')}>
-            <AppSheetFlatList
-              data={filtered}
-              keyExtractor={(option: TSelectOption<T>) => option.value}
-              keyboardShouldPersistTaps="handled"
-              ListEmptyComponent={
-                <Text className={cn(TEXT.bodyMedium, 'py-6 text-center text-muted-foreground')}>
-                  {options.length === 0 ? emptyText : 'Không tìm thấy kết quả'}
-                </Text>
-              }
-              renderItem={({ item }: { item: TSelectOption<T> }) => {
-                const isSelected = item.value === value;
-                return (
-                  <Pressable
-                    accessibilityRole="radio"
-                    accessibilityState={{ checked: isSelected }}
-                    onPress={() => choose(item.value)}
-                    className={cn(
-                      'min-h-12 flex-row items-center justify-between gap-2 rounded-md px-3 active:bg-surface',
-                      isSelected && 'bg-surface',
-                    )}
-                  >
-                    <Text className={cn(TEXT.bodyLarge, 'flex-1', isSelected && 'font-semibold text-primary')}>
-                      {item.label}
-                    </Text>
-                    {isSelected && <Text className={cn(TEXT.labelLarge, 'text-primary')}>✓</Text>}
-                  </Pressable>
-                );
-              }}
-            />
-          </View>
+          {isLong ? (
+            <View className="flex-1">
+              <AppSheetFlatList
+                data={filtered}
+                keyExtractor={(option: TSelectOption<T>) => option.value}
+                keyboardShouldPersistTaps="handled"
+                ListEmptyComponent={emptyView}
+                renderItem={({ item }: { item: TSelectOption<T> }) => (
+                  <SelectOption option={item} selected={item.value === value} onChoose={choose} />
+                )}
+              />
+            </View>
+          ) : (
+            // Short list (≤ 8): plain rows so the dynamically sized sheet measures its full height — a FlatList
+            // reports a wrong content height there and the last option ended up hidden under the sheet edge.
+            <View>
+              {filtered.length === 0
+                ? emptyView
+                : filtered.map((item) => (
+                    <SelectOption key={item.value} option={item} selected={item.value === value} onChoose={choose} />
+                  ))}
+            </View>
+          )}
         </View>
       </AppSheet>
     </View>
+  );
+}
+
+type TSelectOptionProps<T extends string> = {
+  option: TSelectOption<T>;
+  selected: boolean;
+  onChoose: (value: T) => void;
+};
+
+function SelectOption<T extends string>({ option, selected, onChoose }: TSelectOptionProps<T>) {
+  return (
+    <Pressable
+      accessibilityRole="radio"
+      // Explicit label: otherwise the ✓ mark is read as part of the name.
+      accessibilityLabel={option.label}
+      accessibilityState={{ checked: selected }}
+      onPress={() => onChoose(option.value)}
+      className={cn(
+        'min-h-12 flex-row items-center justify-between gap-2 rounded-md px-3 active:bg-surface',
+        selected && 'bg-surface',
+      )}
+    >
+      <Text className={cn(TEXT.bodyLarge, 'flex-1', selected && 'font-semibold text-primary')}>{option.label}</Text>
+      {selected && <Text className={cn(TEXT.labelLarge, 'text-primary')}>✓</Text>}
+    </Pressable>
   );
 }

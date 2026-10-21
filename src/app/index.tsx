@@ -1,40 +1,42 @@
-import { Link } from "expo-router";
-import { Text, View } from "react-native";
-import { useLogout, useSession } from "@/features/auth";
-import { Button } from "@/shared/components/atoms";
-import { ROUTES } from "@/shared/constants";
-import { TEXT } from "@/shared/theme";
+import { View } from 'react-native';
+import { TopArticlesSection } from '@/features/article';
+import { useSession } from '@/features/auth';
+import { HomeDiagnosisPanel } from '@/features/diagnosis';
+import {
+  DistributorExplorerList,
+  DistributorExplorerProvider,
+  DistributorExplorerSection,
+} from '@/features/distributor';
+import { AccountHeaderActions } from '@/features/user';
+import { SiteHeader } from '@/shared/components/organisms';
+import { ScreenLayout } from '@/shared/components/templates';
 
-// Placeholder until the distributor home ("/") is built.
-// TODO(dev): remove DEV_LINKS when the real home lands — shortcuts so Expo Go can reach screens.
-const DEV_LINKS = [
-  { label: "Đăng nhập", href: ROUTES.login },
-  { label: "Đăng ký", href: ROUTES.register },
-  { label: "Kích hoạt tài khoản", href: ROUTES.activate },
-  { label: "Quên mật khẩu", href: ROUTES.resetPassword },
-  { label: "Đổi mật khẩu", href: ROUTES.changePassword },
-  { label: "Sitemap", href: "/_sitemap" },
-] as const;
-
+/**
+ * Home "/" (Specs/19102026) — public, one vertical scroll: diagnosis form → top articles → distributors (map + filter
+ * + list; the map starts when scrolled to). The distributor list is the scroll, the other blocks are its header.
+ * - Guest: form with the default crop, any use → login sheet; header without chat / notification / user.
+ * - FARMER: everything usable.
+ * - DISTRIBUTOR: same, its own shop pinned first and the other shops not openable.
+ */
 export default function HomeScreen() {
   const session = useSession();
-  const logout = useLogout();
+  const ownShopId =
+    session.status === 'authenticated' && session.user.role === 'DISTRIBUTOR' ? session.user.id : undefined;
+
   return (
-    <View className="flex-1 items-center justify-center gap-3 bg-background p-4">
-      <Text className={TEXT.titleLarge}>AgriPedia</Text>
-      {DEV_LINKS.map(({ label, href }) => (
-        <Link key={href} href={href} asChild>
-          <Button label={label} variant="outline" className="w-full" />
-        </Link>
-      ))}
-      {session.isLoggedIn && (
-        <Button
-          label={`Đăng xuất (${session.user.username})`}
-          loading={logout.isPending}
-          onPress={() => logout.mutate()}
-          className="w-full"
+    <ScreenLayout header={<SiteHeader actions={<AccountHeaderActions />} />}>
+      <DistributorExplorerProvider ownShopId={ownShopId}>
+        <DistributorExplorerList
+          header={
+            // DistributorExplorerSection must stay a direct child of this root (its layout y = scroll offset).
+            <View className="gap-6 pb-2">
+              <HomeDiagnosisPanel guest={session.status === 'guest'} />
+              <TopArticlesSection />
+              <DistributorExplorerSection />
+            </View>
+          }
         />
-      )}
-    </View>
+      </DistributorExplorerProvider>
+    </ScreenLayout>
   );
 }

@@ -4,6 +4,7 @@ export { AuthFooterLinks, type TAuthFooterLinkKey } from './components/auth-foot
 export { AuthHeader } from './components/auth-header';
 export { ChangePasswordForm } from './components/change-password-form';
 export { LoginForm } from './components/login-form';
+export { LoginRequiredSheet, type TLoginRequiredSheetProps } from './components/login-required-sheet';
 export { RegisterForm } from './components/register-form';
 export { ResetPasswordForm } from './components/reset-password-form';
 export { SessionListener } from './components/session-listener';

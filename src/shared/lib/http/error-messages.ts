@@ -41,10 +41,13 @@ const MESSAGES: Record<string, string> = {
   // Client
   [APP_ERROR_CODE.NETWORK_ERROR]: 'Không có kết nối mạng. Vui lòng kiểm tra và thử lại.',
   [APP_ERROR_CODE.TIMEOUT]: 'Kết nối quá chậm. Vui lòng thử lại.',
+  [APP_ERROR_CODE.UPLOAD_FAILED]: 'Tải tệp lên thất bại. Vui lòng thử lại.',
   [APP_ERROR_CODE.VALIDATION_ERROR]: 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.',
   // Session
   AUTH_INVALID_ACCESS_TOKEN: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
   USER_INVALID_REFRESH_TOKEN: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+  // Realtime (socket ack)
+  REALTIME_VALIDATION_FAILED: 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.',
   // Login
   USER_INVALID_CREDENTIALS: 'Email/số điện thoại hoặc mật khẩu không đúng.',
   USER_NOT_ACTIVE: 'Tài khoản chưa được kích hoạt.',
@@ -54,6 +57,13 @@ const MESSAGES: Record<string, string> = {
   USER_LOCATION_INVALID: 'Tỉnh/thành phố hoặc phường/xã không hợp lệ. Vui lòng chọn lại.',
   USER_BUSINESS_TYPE_REQUIRED: 'Vui lòng chọn loại hình kinh doanh.',
   USER_BUSINESS_TYPE_NOT_ALLOWED: 'Nông dân không cần chọn loại hình kinh doanh.',
+  USER_NOT_FOUND: 'Không tìm thấy tài khoản.',
+  USER_DISTRIBUTOR_NOT_FOUND: 'Không tìm thấy nhà phân phối.',
+  // Addresses
+  USER_ADDRESS_NOT_FOUND: 'Địa chỉ không còn tồn tại.',
+  USER_ADDRESS_PRIMARY_NOT_DELETABLE: 'Không thể xoá địa chỉ mặc định. Hãy chọn địa chỉ khác làm mặc định trước.',
+  // Media
+  MEDIA_INVALID_EXTENSION: 'Định dạng tệp không được hỗ trợ.',
   // OTP (activate, resend, reset-password, change-password)
   OTP_ACCOUNT_NOT_FOUND: 'Không tìm thấy tài khoản với email/số điện thoại này.',
   OTP_ACCOUNT_NOT_ACTIVE: 'Tài khoản chưa được kích hoạt.',
@@ -65,4 +75,45 @@ const MESSAGES: Record<string, string> = {
   OTP_BLOCKED: 'Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.',
   // Location
   LOCATION_PROVINCE_NOT_FOUND: 'Không tìm thấy tỉnh/thành phố.',
+  // Chat
+  CHAT_INVALID_CURSOR: 'Không tải được thêm tin nhắn. Vui lòng tải lại.',
+  CHAT_ROOM_NOT_FOUND: 'Không tìm thấy cuộc trò chuyện.',
+  CHAT_NOT_ROOM_MEMBER: 'Bạn không thuộc cuộc trò chuyện này.',
+  CHAT_ROOM_OR_RECEIVER_REQUIRED: 'Không xác định được người nhận tin nhắn.',
+  CHAT_SENDER_NOT_ALLOWED: 'Tài khoản của bạn không thể gửi tin nhắn.',
+  CHAT_RECEIVER_NOT_FOUND: 'Không tìm thấy người nhận.',
+  CHAT_INVALID_RECEIVER: 'Không thể gửi tin nhắn cho người dùng này.',
+  CHAT_INVALID_MESSAGE: 'Tin nhắn phải từ 1 đến 2000 ký tự.',
+  CHAT_DIAGNOSIS_NOT_FOUND: 'Không tìm thấy kết quả chẩn đoán.',
+  CHAT_DIAGNOSIS_NOT_COMPLETED: 'Chẩn đoán chưa hoàn tất, chưa thể gửi báo cáo.',
+  CHAT_DIAGNOSIS_REPORT_NOT_ALLOWED: 'Chỉ nông dân mới gửi được báo cáo chẩn đoán cho nhà phân phối.',
+  CHAT_INVALID_DIAGNOSIS_REFERENCE: 'Báo cáo chẩn đoán không hợp lệ.',
+  // Notification
+  NOTIFICATION_INVALID_CURSOR: 'Không tải được thêm thông báo. Vui lòng tải lại.',
+  NOTIFICATION_NOT_FOUND: 'Không tìm thấy thông báo.',
+  // Product
+  PRODUCT_INVALID_CURSOR: 'Không tải được thêm sản phẩm. Vui lòng tải lại.',
+  PRODUCT_DISTRIBUTOR_NOT_FOUND: 'Không tìm thấy nhà phân phối.',
+  PRODUCT_NOT_FOUND: 'Sản phẩm không còn tồn tại.',
+  PRODUCT_SELLER_NOT_ALLOWED: 'Chỉ tài khoản nhà phân phối đã kích hoạt mới được quản lý sản phẩm.',
+  PRODUCT_NOT_OWNER: 'Bạn không phải chủ của sản phẩm này.',
+  PRODUCT_CATEGORY_NOT_FOUND: 'Danh mục không còn tồn tại, vui lòng chọn lại.',
+  PRODUCT_INVALID_PRICE: 'Giá không hợp lệ.',
+  PRODUCT_INVALID_QUANTITY: 'Số lượng không hợp lệ.',
+  // Review
+  REVIEW_INVALID_CURSOR: 'Không tải được thêm đánh giá. Vui lòng tải lại.',
+  REVIEW_DISTRIBUTOR_NOT_FOUND: 'Không tìm thấy nhà phân phối.',
+  REVIEW_INVALID_STAR: 'Vui lòng chọn từ 1 đến 5 sao.',
+  REVIEW_INVALID_CONTENT: 'Nội dung đánh giá phải từ 1 đến 1000 ký tự.',
+  REVIEW_REVIEWER_NOT_ALLOWED: 'Chỉ tài khoản nông dân đã kích hoạt mới được đánh giá.',
+  REVIEW_TARGET_NOT_FOUND: 'Shop hoặc sản phẩm không còn tồn tại.',
+  REVIEW_ALREADY_EXISTS: 'Bạn đã đánh giá rồi.',
+  REVIEW_INVALID_TARGET: 'Hiện chưa thể đánh giá mục này.',
+  // Diagnosis
+  DIAGNOSIS_INVALID_IMAGE: 'Ảnh không hợp lệ hoặc không đọc được, hãy chọn ảnh khác',
+  DIAGNOSIS_CROP_NOT_SUPPORTED: 'Cây trồng chưa được hỗ trợ',
+  DIAGNOSIS_USER_NOT_ALLOWED: 'Tài khoản chưa kích hoạt, không thể chẩn đoán',
+  DIAGNOSIS_DAILY_LIMIT_EXCEEDED: 'Bạn đã dùng hết lượt chẩn đoán hôm nay, vui lòng thử lại ngày mai',
+  DIAGNOSIS_NOT_FOUND: 'Không tìm thấy kết quả chẩn đoán.',
+  KNOWLEDGE_DISEASE_NOT_FOUND: 'Không tìm thấy thông tin bệnh.',
 };
