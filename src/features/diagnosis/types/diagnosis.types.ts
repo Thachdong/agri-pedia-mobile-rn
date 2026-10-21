@@ -22,3 +22,11 @@ export type TCreateDiagnosisInput = {
   note?: string;
 };
 export type TCreateDiagnosisResponse = TApiSchema<'CreateDiagnosisResponse'>;
+
+/** One photo slot of the form — `id` keys the slot, `plantPart` '' = not chosen (DEFAULT_PLANT_PART is sent). */
+export type TDiagnosisFormImage = { id: string; uri: string; plantPart: TPlantPart | '' };
+
+export type TDiagnosisFormValues = { images: TDiagnosisFormImage[]; note: string };
+
+/** Resolver context — image count limit from GET /diagnoses/settings (`maxImages`). */
+export type TDiagnosisFormContext = { maxImages: number };

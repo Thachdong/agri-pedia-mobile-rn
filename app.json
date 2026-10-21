@@ -39,8 +39,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "AgriPedia dùng thư viện ảnh để bạn chọn ảnh đại diện và giấy phép kinh doanh.",
-          "cameraPermission": false,
+          "photosPermission": "AgriPedia dùng thư viện ảnh để bạn chọn ảnh đại diện, giấy phép kinh doanh và ảnh cây trồng cần chẩn đoán.",
+          "cameraPermission": "AgriPedia dùng camera để bạn chụp ảnh cây trồng cần chẩn đoán bệnh.",
           "microphonePermission": false
         }
       ]

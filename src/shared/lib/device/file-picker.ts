@@ -69,6 +69,21 @@ export async function pickImages({ limit }: { limit: number }): Promise<TPickedF
 }
 
 /**
+ * One photo from the camera (asks the camera permission first). Denied, cancelled or any native error → null.
+ */
+export async function takePhoto(): Promise<TPickedFile | null> {
+  try {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) return null;
+    const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: IMAGE_QUALITY });
+    const asset = result.canceled ? undefined : result.assets[0];
+    return asset ? toPickedImage(asset) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * One file from the documents picker, limited to `types` (MIME, e.g. `['image/*', 'application/pdf']`).
  * Copied to the app cache so the uri stays readable. Cancelled or any native error → null.
  */

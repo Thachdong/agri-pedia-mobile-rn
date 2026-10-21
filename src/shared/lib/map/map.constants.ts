@@ -3,10 +3,10 @@ import type { TGeoPoint } from '@/shared/types';
 /** Center of Vietnam — initial camera when there is no value and no position. */
 export const VN_CENTER: TGeoPoint = { lat: 16.0471, long: 108.2062 };
 
-/** Corners of mainland Vietnam (SW, NE) — framed when there is no position. Islands left out so the mainland fills the view. */
+/** Corners of Vietnam incl. Hoàng Sa / Trường Sa (SW, NE) — framed when there is no position (Specs/19102026 map-size.png, same as web). */
 export const VN_BOUNDS: readonly [TGeoPoint, TGeoPoint] = [
-  { lat: 8.4, long: 102.1 },
-  { lat: 23.4, long: 109.5 },
+  { lat: 8.0, long: 102.1 },
+  { lat: 23.8, long: 115.8 },
 ];
 
 /** Latitude span of the camera. Country ≈ whole VN, province ≈ one province around the viewer, city ≈ one district (a single result), street ≈ a few blocks (picking an address). */

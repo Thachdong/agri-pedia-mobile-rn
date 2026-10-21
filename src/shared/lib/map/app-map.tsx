@@ -26,13 +26,13 @@ export type TAppMapHandle = {
   animateTo: (point: TGeoPoint, latitudeDelta?: number) => void;
   /** Frames every point (one point → city level, none → no move). */
   fitTo: (points: readonly TGeoPoint[]) => void;
-  /** Frames mainland Vietnam. */
+  /** Frames Vietnam (VN_BOUNDS, islands included). */
   showCountry: () => void;
 };
 
 export type TAppMapProps = {
   ref?: Ref<TAppMapHandle>;
-  /** Initial camera center — read once on mount (move later with `ref.animateTo`). Default: mainland VN framed. */
+  /** Initial camera center — read once on mount (move later with `ref.animateTo`). Default: VN_BOUNDS framed. */
   initialCenter?: TGeoPoint;
   /** Initial latitude span. Default: whole country. */
   initialLatitudeDelta?: number;
