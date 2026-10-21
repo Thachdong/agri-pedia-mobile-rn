@@ -24,6 +24,8 @@ export default {
         highlight: { DEFAULT: c.highlight, foreground: c.highlightForeground, subtle: c.highlightSubtle },
         rating: { DEFAULT: c.rating, muted: c.ratingMuted },
         destructive: { DEFAULT: c.destructive, foreground: c.destructiveForeground },
+        success: { DEFAULT: c.success, foreground: c.successForeground, subtle: c.successSubtle },
+        warning: { DEFAULT: c.warning, foreground: c.warningForeground, subtle: c.warningSubtle },
         border: c.border,
         'border-subtle': c.borderSubtle,
         input: c.input,

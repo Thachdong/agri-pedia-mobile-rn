@@ -12,7 +12,7 @@ const isProcessing = (diagnosis: TDiagnosis | undefined) => diagnosis?.status ==
  * - realtime `diagnosis.completed` of this id → refetch;
  * - fallback: poll every 3s while PROCESSING; 5 min after the wait started → stop polling, `timedOut`;
  * - socket connected AGAIN → refetch (events missed while offline are not replayed).
- * `reload()` refetches and starts waiting again.
+ * `reload()` refetches (resolves when done) and starts waiting again.
  */
 export function useDiagnosisLive(id: string) {
   const client = useAppQueryClient();
@@ -49,7 +49,7 @@ export function useDiagnosisLive(id: string) {
   const reload = useCallback(() => {
     setWaitStartedAt(Date.now());
     setTimedOut(false);
-    void refresh();
+    return refresh();
   }, [refresh]);
 
   return { ...query, timedOut: processing && timedOut, reload };
