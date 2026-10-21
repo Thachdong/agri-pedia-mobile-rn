@@ -14,7 +14,7 @@ export function useChatRealtime() {
   const client = useAppQueryClient();
   const hasConnected = useRef(false);
 
-  useRealtimeEvent<TChatMessageReceivedEvent>(CHAT_EVENTS.received, ({ messageId, roomId, senderId, message, createdAt }) => {
+  useRealtimeEvent<TChatMessageReceivedEvent>(CHAT_EVENTS.received, ({ messageId, roomId, senderId, message, type, diagnosisId, createdAt }) => {
     client.setQueryData<TChatMessagesCache>(queryKeys.chat.messages(roomId), (cache) =>
       prependMessage(cache, {
         id: messageId,
@@ -22,8 +22,8 @@ export function useChatRealtime() {
         senderUsername: null,
         senderAvatar: null,
         message,
-        type: 'TEXT',
-        diagnosisId: null,
+        type: type ?? 'TEXT',
+        diagnosisId: diagnosisId ?? null,
         createdAt,
       }),
     );

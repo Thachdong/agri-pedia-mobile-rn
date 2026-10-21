@@ -26,8 +26,8 @@ export function useSendMessage(senderId: string) {
           senderUsername: null,
           senderAvatar: null,
           message: input.message.trim(),
-          type: 'TEXT',
-          diagnosisId: null,
+          type: input.type ?? 'TEXT',
+          diagnosisId: input.diagnosisId ?? null,
           createdAt: ack.createdAt,
         }),
       );

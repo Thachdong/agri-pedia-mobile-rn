@@ -3,6 +3,7 @@ import type {
   TCreateDiagnosisInput,
   TCreateDiagnosisMeta,
   TCreateDiagnosisResponse,
+  TDiagnosis,
   TDiagnosisSettings,
 } from '../types/diagnosis.types';
 
@@ -23,3 +24,7 @@ export const createDiagnosis = ({ cropType, images, note }: TCreateDiagnosisInpu
   form.append('meta', JSON.stringify(meta));
   return http.post<TCreateDiagnosisResponse>('/diagnoses', form);
 };
+
+/** One of my diagnoses; another user's / unknown id → 404 DIAGNOSIS_NOT_FOUND. */
+export const getDiagnosis = (id: string, signal?: AbortSignal) =>
+  http.get<TDiagnosis>(`/diagnoses/${encodeURIComponent(id)}`, { signal });

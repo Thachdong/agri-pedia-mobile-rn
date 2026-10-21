@@ -56,11 +56,15 @@ export const queryKeys = {
     all: ['diagnoses'] as const,
     /** GET /diagnoses/settings — `remainingToday` belongs to the caller (session change clears the whole cache). */
     settings: () => [...queryKeys.diagnoses.all, 'settings'] as const,
+    /** One of my diagnoses (GET /diagnoses/{id}) — result page. */
+    detail: (id: string) => [...queryKeys.diagnoses.all, 'detail', id] as const,
   },
   knowledge: {
     all: ['knowledge'] as const,
     /** Crops enabled for diagnosis (GET /knowledge/crops). */
     crops: () => [...queryKeys.knowledge.all, 'crops'] as const,
+    /** Vietnamese detail of one disease (GET /knowledge/diseases/{code}). */
+    disease: (code: string) => [...queryKeys.knowledge.all, 'disease', code] as const,
   },
   articles: {
     all: ['articles'] as const,

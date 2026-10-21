@@ -84,6 +84,10 @@ const MESSAGES: Record<string, string> = {
   CHAT_RECEIVER_NOT_FOUND: 'Không tìm thấy người nhận.',
   CHAT_INVALID_RECEIVER: 'Không thể gửi tin nhắn cho người dùng này.',
   CHAT_INVALID_MESSAGE: 'Tin nhắn phải từ 1 đến 2000 ký tự.',
+  CHAT_DIAGNOSIS_NOT_FOUND: 'Không tìm thấy kết quả chẩn đoán.',
+  CHAT_DIAGNOSIS_NOT_COMPLETED: 'Chẩn đoán chưa hoàn tất, chưa thể gửi báo cáo.',
+  CHAT_DIAGNOSIS_REPORT_NOT_ALLOWED: 'Chỉ nông dân mới gửi được báo cáo chẩn đoán cho nhà phân phối.',
+  CHAT_INVALID_DIAGNOSIS_REFERENCE: 'Báo cáo chẩn đoán không hợp lệ.',
   // Notification
   NOTIFICATION_INVALID_CURSOR: 'Không tải được thêm thông báo. Vui lòng tải lại.',
   NOTIFICATION_NOT_FOUND: 'Không tìm thấy thông báo.',
@@ -110,4 +114,6 @@ const MESSAGES: Record<string, string> = {
   DIAGNOSIS_CROP_NOT_SUPPORTED: 'Cây trồng chưa được hỗ trợ',
   DIAGNOSIS_USER_NOT_ALLOWED: 'Tài khoản chưa kích hoạt, không thể chẩn đoán',
   DIAGNOSIS_DAILY_LIMIT_EXCEEDED: 'Bạn đã dùng hết lượt chẩn đoán hôm nay, vui lòng thử lại ngày mai',
+  DIAGNOSIS_NOT_FOUND: 'Không tìm thấy kết quả chẩn đoán.',
+  KNOWLEDGE_DISEASE_NOT_FOUND: 'Không tìm thấy thông tin bệnh.',
 };
