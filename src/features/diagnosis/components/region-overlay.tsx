@@ -47,7 +47,8 @@ export function RegionOverlay({ regions, selectedIndex = null, onSelect, classNa
             style={{ left: toPercent(box.x), top: toPercent(box.y), width: toPercent(box.w), height: toPercent(box.h) }}
             className={cn('absolute rounded-sm border-2', tone.box, selected && 'border-4', dimmed && 'opacity-40')}
           >
-            <View className={cn('absolute -top-5 left-0 max-w-40 rounded-sm px-1', tone.label)}>
+            {/* Inside the box: the image container clips anything above its top edge. */}
+            <View className={cn('absolute left-0 top-0 max-w-40 rounded-br-sm px-1', tone.label)}>
               <Text numberOfLines={1} className={cn('text-2xs font-medium', tone.text)}>
                 {name}
               </Text>

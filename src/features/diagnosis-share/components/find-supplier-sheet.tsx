@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -77,24 +77,25 @@ type TSearchProps = { onChoose: (distributor: TNearbyDistributor) => void };
 function NearbySearch({ onChoose, onSearchByArea }: TSearchProps & { onSearchByArea: () => void }) {
   const [point, setPoint] = useState<TGeoPoint | null>(null);
   const [status, setStatus] = useState<'locating' | 'done' | 'failed'>('locating');
+  const mountedRef = useRef(true);
 
-  const locate = async () => {
-    setStatus('locating');
-    const position = await getCurrentPosition();
+  const resolve = (position: TGeoPoint | null) => {
+    if (!mountedRef.current) return;
     setPoint(position);
     setStatus(position ? 'done' : 'failed');
   };
 
-  // Ask the position as soon as the tab shows.
+  const locate = async () => {
+    setStatus('locating');
+    resolve(await getCurrentPosition());
+  };
+
+  // Ask the position once, as soon as the tab shows (status starts as 'locating').
   useEffect(() => {
-    let active = true;
-    void getCurrentPosition().then((position) => {
-      if (!active) return;
-      setPoint(position);
-      setStatus(position ? 'done' : 'failed');
-    });
+    mountedRef.current = true;
+    void getCurrentPosition().then(resolve);
     return () => {
-      active = false;
+      mountedRef.current = false;
     };
   }, []);
 

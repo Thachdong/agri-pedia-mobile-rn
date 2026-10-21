@@ -17,6 +17,7 @@ import { articlePathParts } from '../utils/diagnosis-view.util';
 
 export type TDiseaseSheetProps = {
   sheetRef: TAppSheetProps['sheetRef'];
+  /** Closes the sheet (before opening an article). */
   onClose: () => void;
   /** Disease shown; null = nothing loaded. */
   code: string | null;
@@ -28,7 +29,7 @@ export type TDiseaseSheetProps = {
 export function DiseaseSheet({ sheetRef, onClose, code, cropType }: TDiseaseSheetProps) {
   const insets = useSafeAreaInsets();
   return (
-    <AppSheet sheetRef={sheetRef} scrollable snapPoints={['90%']} accessibilityLabel="Thông tin bệnh" onDismiss={onClose}>
+    <AppSheet sheetRef={sheetRef} scrollable snapPoints={['90%']} accessibilityLabel="Thông tin bệnh">
       <View style={{ paddingBottom: insets.bottom + 16 }} className="px-4 pt-2">
         {code && <DiseaseReport code={code} cropType={cropType} onNavigate={onClose} />}
       </View>
