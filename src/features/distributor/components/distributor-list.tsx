@@ -94,6 +94,7 @@ export function DistributorList({ query, selectedId, ownShopId, header, onScroll
         ) : null
       }
       keepHeader={!!header}
+      adjustsForKeyboard={!!header}
       onScroll={onScroll}
       emptyIcon="storefront-outline"
       emptyTitle="Chưa có nhà phân phối"

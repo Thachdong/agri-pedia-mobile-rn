@@ -54,6 +54,8 @@ export type TInfiniteListProps<T> = {
   numColumns?: number;
   /** Row style of a grid (`numColumns` > 1), e.g. `gap-3 px-4`. */
   columnWrapperClassName?: string;
+  /** iOS: the content insets follow the keyboard (text fields in the header stay reachable). */
+  adjustsForKeyboard?: boolean;
   /** Scroll position (e.g. lazy content in the header that starts when scrolled into view). */
   onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   className?: string;
@@ -83,6 +85,7 @@ export function InfiniteList<T>({
   keepHeader = false,
   numColumns = 1,
   columnWrapperClassName,
+  adjustsForKeyboard = false,
   onScroll,
   className,
   contentContainerClassName,
@@ -192,6 +195,7 @@ export function InfiniteList<T>({
         />
       }
       keyboardShouldPersistTaps="handled"
+      automaticallyAdjustKeyboardInsets={adjustsForKeyboard}
       accessibilityLabel={accessibilityLabel}
       className={cn('flex-1', className)}
       contentContainerClassName={cn('grow', contentContainerClassName)}
