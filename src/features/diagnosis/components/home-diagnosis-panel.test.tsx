@@ -1,6 +1,7 @@
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderWithProviders } from '@/test-utils';
-import { getDiagnosisSettings } from '../services/diagnosis.service';
+import { pickImages, resizeImage } from '@/shared/lib/device';
+import { createDiagnosis, getDiagnosisSettings } from '../services/diagnosis.service';
 import { getCrops } from '../services/knowledge.service';
 import { crop, diagnosisSettings, durian } from '../test/diagnosis.fixtures';
 import { HomeDiagnosisPanel } from './home-diagnosis-panel';
@@ -11,10 +12,14 @@ jest.mock('@/features/auth', () => {
   return { LoginRequiredSheet: () => <Text>login-sheet</Text> };
 });
 const mockOpen = jest.fn();
-jest.mock('@/shared/lib/sheet', () => ({ useAppSheet: () => ({ ref: { current: null }, open: mockOpen, close: jest.fn() }) }));
+jest.mock('@/shared/lib/sheet', () => ({
+  ...jest.requireActual<object>('@/shared/lib/sheet'),
+  useAppSheet: () => ({ ref: { current: null }, open: mockOpen, close: jest.fn() }),
+}));
 jest.mock('@/shared/lib/toast', () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 jest.mock('../services/diagnosis.service');
 jest.mock('../services/knowledge.service');
+jest.mock('@/shared/lib/device', () => ({ pickImages: jest.fn(), takePhoto: jest.fn(), resizeImage: jest.fn() }));
 
 const selectedTab = () => screen.getByRole('tab', { selected: true });
 
@@ -63,5 +68,23 @@ describe('HomeDiagnosisPanel', () => {
     await renderWithProviders(<HomeDiagnosisPanel />);
     await fireEvent.press(await screen.findByRole('button', { name: 'Thử lại' }));
     expect(await screen.findByText('Chưa có cây trồng được hỗ trợ chẩn đoán.')).toBeOnTheScreen();
+  });
+
+  it('crop tabs locked while a diagnosis is being sent', async () => {
+    jest.mocked(pickImages).mockResolvedValue([
+      { uri: 'file:///a.jpg', name: 'a.jpg', mimeType: 'image/jpeg', size: 1, extension: 'jpg' },
+    ]);
+    jest.mocked(resizeImage).mockResolvedValue({ uri: 'file:///a.small.jpg', width: 1, height: 1 });
+    let finish: (value: { id: string; status: 'PROCESSING' }) => void = () => {};
+    jest.mocked(createDiagnosis).mockReturnValue(new Promise((resolve) => (finish = resolve)));
+    await renderWithProviders(<HomeDiagnosisPanel />);
+    await fireEvent.press(await screen.findByRole('button', { name: 'Chọn ảnh' }));
+    expect(screen.getByRole('tab', { name: 'Sầu riêng' })).toBeEnabled();
+    // Not awaited: the press resolves only when the request does.
+    const sending = fireEvent.press(screen.getByRole('button', { name: 'Chẩn đoán' }));
+    await waitFor(() => expect(screen.getByRole('tab', { name: 'Sầu riêng' })).toBeDisabled());
+    finish({ id: 'g1', status: 'PROCESSING' });
+    await sending;
+    await waitFor(() => expect(screen.getByRole('tab', { name: 'Sầu riêng' })).toBeEnabled());
   });
 });

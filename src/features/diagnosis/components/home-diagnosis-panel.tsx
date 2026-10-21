@@ -27,6 +27,8 @@ export function HomeDiagnosisPanel({ guest = false, className }: THomeDiagnosisP
   const settings = useDiagnosisSettings();
   const loginSheet = useAppSheet();
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
+  // A diagnosis being resized / sent: another crop would remount the form mid-way → tabs locked.
+  const [isSending, setIsSending] = useState(false);
 
   const settingsReady = !settings.isPending || settings.isError;
   const crop =
@@ -79,6 +81,7 @@ export function HomeDiagnosisPanel({ guest = false, className }: THomeDiagnosisP
                 value={crop.code}
                 onChange={changeCrop}
                 accessibilityLabel="Cây trồng cần chẩn đoán"
+                disabled={isSending}
                 className="self-start"
               />
             </ScrollView>
@@ -89,6 +92,7 @@ export function HomeDiagnosisPanel({ guest = false, className }: THomeDiagnosisP
             settings={settings.data}
             guest={guest}
             onRequireLogin={loginSheet.open}
+            onBusyChange={setIsSending}
           />
         </>
       )}

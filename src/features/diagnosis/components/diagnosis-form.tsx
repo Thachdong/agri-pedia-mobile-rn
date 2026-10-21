@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Button } from '@/shared/components/atoms';
 import { FormInput, type TSelectOption } from '@/shared/components/molecules';
@@ -46,6 +46,8 @@ export type TDiagnosisFormProps = {
   /** Guest: the form is shown but every action calls `onRequireLogin` instead. */
   guest?: boolean;
   onRequireLogin?: () => void;
+  /** Resizing / sending started or ended — the owner locks what would remount the form (crop tabs). */
+  onBusyChange?: (busy: boolean) => void;
   className?: string;
 };
 
@@ -54,7 +56,14 @@ export type TDiagnosisFormProps = {
  * Photos are resized to the settings limits, then POST /diagnoses → report screen. Errors: per photo (not decodable,
  * DIAGNOSIS_INVALID_IMAGE with an index) or under the form; the photos stay to send again.
  */
-export function DiagnosisForm({ crop, settings, guest = false, onRequireLogin, className }: TDiagnosisFormProps) {
+export function DiagnosisForm({
+  crop,
+  settings,
+  guest = false,
+  onRequireLogin,
+  onBusyChange,
+  className,
+}: TDiagnosisFormProps) {
   // react-hook-form's `formState` mutates one stable object — opt out of React Compiler memoization here.
   'use no memo';
   const router = useRouter();
@@ -71,6 +80,10 @@ export function DiagnosisForm({ crop, settings, guest = false, onRequireLogin, c
   const images = form.watch('images');
   const isBusy = isResizing || create.isPending;
   const noQuotaLeft = settings?.remainingToday === 0;
+
+  useEffect(() => {
+    onBusyChange?.(isBusy);
+  }, [isBusy, onBusyChange]);
   const free = Math.max(maxImages - images.length, 0);
 
   const plantPartOptions: TSelectOption<TPlantPart>[] = crop.plantParts.map((part) => ({
