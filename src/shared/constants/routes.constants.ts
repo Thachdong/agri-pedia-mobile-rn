@@ -24,6 +24,6 @@ export const ROUTES = {
     crop: (cropSlug: string) => `/articles/${cropSlug}` as const,
     detail: (cropSlug: string, slug: string) => `/articles/${cropSlug}/${slug}` as const,
   },
-  /** Report of one diagnosis (private; MOCK screen for now). */
+  /** Report of one diagnosis (private). */
   diagnosis: (id: string) => `/diagnosis/${id}` as const,
 } as const;
