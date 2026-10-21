@@ -1,9 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { FlatList } from 'react-native';
+import { FlatList, Text } from 'react-native';
 import { useProvinces } from '@/features/location';
 import { NEARBY_FALLBACK_NOTES } from '../constants/distributor.constants';
 import type { useNearbyDistributors } from '../hooks/use-nearby-distributors';
-import { nearbyDistributor, nearbyView } from '../test/distributor.fixtures';
+import { useDistributorProfile } from '../hooks/use-distributor-profile';
+import { distributorProfile, nearbyDistributor, nearbyView } from '../test/distributor.fixtures';
 import type { TNearbyDistributorsView } from '../types/distributor.types';
 import { DistributorList } from './distributor-list';
 
@@ -35,6 +36,9 @@ const TWO = nearbyView({
 describe('DistributorList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useDistributorProfile).mockReturnValue({ data: undefined } as unknown as ReturnType<
+      typeof useDistributorProfile
+    >);
     jest.mocked(useProvinces).mockReturnValue({
       data: [{ codename: 'ha_noi', name: 'Hà Nội' }],
     } as unknown as ReturnType<typeof useProvinces>);
@@ -76,5 +80,39 @@ describe('DistributorList', () => {
   it('empty result → empty state', async () => {
     await render(<DistributorList query={query(nearbyView({ items: [], total: 0 }))} selectedId={null} />);
     expect(screen.getByText('Chưa có nhà phân phối')).toBeOnTheScreen();
+  });
+
+  it('header (home blocks) stays while the first page loads', async () => {
+    await render(
+      <DistributorList
+        query={{ ...query(TWO), data: undefined, isPending: true } as TQuery}
+        selectedId={null}
+        header={<Text>home-blocks</Text>}
+      />,
+    );
+    expect(screen.getByText('home-blocks')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Đang tải')).toBeOnTheScreen();
+  });
+
+  it('DISTRIBUTOR: own shop from the search pinned first, the other shops not openable', async () => {
+    await render(<DistributorList query={query(TWO)} selectedId={null} ownShopId="d2" />);
+    const [first, second] = screen.getAllByRole('button');
+    expect(first).toHaveTextContent(/Cửa hàng Bình An/);
+    expect(second).toBeDisabled();
+    expect(useDistributorProfile).toHaveBeenLastCalledWith('d2', { enabled: false });
+    await fireEvent.press(first!);
+    expect(mockPush).toHaveBeenCalledWith('/profile/d2');
+  });
+
+  it('DISTRIBUTOR: own shop not in the search → fetched by id and pinned first', async () => {
+    jest.mocked(useDistributorProfile).mockReturnValue({
+      data: distributorProfile({ id: 'me', username: 'Shop của tôi' }),
+    } as unknown as ReturnType<typeof useDistributorProfile>);
+    await render(<DistributorList query={query(TWO)} selectedId={null} ownShopId="me" />);
+    expect(useDistributorProfile).toHaveBeenLastCalledWith('me', { enabled: true });
+    const buttons = screen.getAllByRole('button');
+    expect(buttons).toHaveLength(3);
+    expect(buttons[0]).toHaveTextContent(/Shop của tôi/);
+    expect(buttons[1]).toBeDisabled();
   });
 });

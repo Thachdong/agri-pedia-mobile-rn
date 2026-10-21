@@ -137,4 +137,22 @@ describe('DistributorExplorer', () => {
     await act(async () => {});
     expect(screen.getByText('marker:d1')).toBeOnTheScreen();
   });
+
+  it('lazy: nothing asked or fetched until the section scrolls into view', async () => {
+    jest.mocked(useSession).mockReturnValue({ status: 'guest', user: undefined, isLoggedIn: false } as unknown as ReturnType<
+      typeof useSession
+    >);
+    await render(
+      <DistributorExplorerProvider>
+        <DistributorExplorerSection />
+      </DistributorExplorerProvider>,
+    );
+    // Laid out far below the window (jest window height 1334).
+    await fireEvent(screen.getByTestId('distributor-explorer-section'), 'layout', {
+      nativeEvent: { layout: { y: 5000 } },
+    });
+    expect(getCurrentPosition).not.toHaveBeenCalled();
+    expect(useNearbyDistributors).toHaveBeenLastCalledWith({}, { enabled: false });
+    expect(screen.queryByText('marker:d1')).toBeNull();
+  });
 });

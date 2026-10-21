@@ -1,8 +1,12 @@
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import { pickDocument, pickImage, pickImages } from './file-picker';
+import { pickDocument, pickImage, pickImages, takePhoto } from './file-picker';
 
-jest.mock('expo-image-picker', () => ({ launchImageLibraryAsync: jest.fn() }));
+jest.mock('expo-image-picker', () => ({
+  launchImageLibraryAsync: jest.fn(),
+  launchCameraAsync: jest.fn(),
+  requestCameraPermissionsAsync: jest.fn(),
+}));
 jest.mock('expo-document-picker', () => ({ getDocumentAsync: jest.fn() }));
 
 describe('pickImage', () => {
@@ -74,5 +78,29 @@ describe('pickImages', () => {
     await expect(pickImages({ limit: 3 })).resolves.toEqual([]);
     jest.mocked(ImagePicker.launchImageLibraryAsync).mockRejectedValueOnce(new Error('native'));
     await expect(pickImages({ limit: 3 })).resolves.toEqual([]);
+  });
+});
+
+describe('takePhoto', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('asks the camera permission, then returns the photo', async () => {
+    jest.mocked(ImagePicker.requestCameraPermissionsAsync).mockResolvedValue({ granted: true } as never);
+    jest.mocked(ImagePicker.launchCameraAsync).mockResolvedValue({
+      canceled: false,
+      assets: [{ uri: 'file:///cache/cam.jpg', fileName: null, mimeType: 'image/jpeg', fileSize: 10 }],
+    } as never);
+    await expect(takePhoto()).resolves.toMatchObject({ uri: 'file:///cache/cam.jpg', extension: 'jpg' });
+  });
+
+  it('permission denied → null, camera not opened; cancelled / native error → null', async () => {
+    jest.mocked(ImagePicker.requestCameraPermissionsAsync).mockResolvedValueOnce({ granted: false } as never);
+    await expect(takePhoto()).resolves.toBeNull();
+    expect(ImagePicker.launchCameraAsync).not.toHaveBeenCalled();
+    jest.mocked(ImagePicker.requestCameraPermissionsAsync).mockResolvedValue({ granted: true } as never);
+    jest.mocked(ImagePicker.launchCameraAsync).mockResolvedValueOnce({ canceled: true, assets: null } as never);
+    await expect(takePhoto()).resolves.toBeNull();
+    jest.mocked(ImagePicker.launchCameraAsync).mockRejectedValueOnce(new Error('native'));
+    await expect(takePhoto()).resolves.toBeNull();
   });
 });
