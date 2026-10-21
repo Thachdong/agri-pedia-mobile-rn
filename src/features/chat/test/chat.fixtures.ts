@@ -6,7 +6,7 @@ export const chatRoom = (overrides: Partial<TChatRoom> = {}): TChatRoom => ({
   otherUserId: 'u2',
   otherUsername: 'Đại lý Minh Phát',
   otherUserAvatar: null,
-  lastMessage: { messageId: 'm1', senderId: 'u2', message: 'Chào anh' },
+  lastMessage: { messageId: 'm1', senderId: 'u2', message: 'Chào anh', type: 'TEXT', diagnosisId: null },
   lastMessageAt: '2026-10-08T10:00:00.000Z',
   unreadCount: 0,
   ...overrides,
@@ -26,6 +26,8 @@ export const chatMessage = (overrides: Partial<TChatMessage> = {}): TChatMessage
   senderUsername: 'Đại lý Minh Phát',
   senderAvatar: null,
   message: 'Chào anh',
+  type: 'TEXT',
+  diagnosisId: null,
   createdAt: '2026-10-08T10:00:00.000Z',
   ...overrides,
 });

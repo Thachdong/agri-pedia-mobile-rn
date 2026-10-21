@@ -52,6 +52,21 @@ export const queryKeys = {
     detail: (productId: string) => [...queryKeys.products.all, 'detail', productId] as const,
     categories: () => [...queryKeys.products.all, 'categories'] as const,
   },
+  diagnoses: {
+    all: ['diagnoses'] as const,
+    /** GET /diagnoses/settings — `remainingToday` belongs to the caller (session change clears the whole cache). */
+    settings: () => [...queryKeys.diagnoses.all, 'settings'] as const,
+  },
+  knowledge: {
+    all: ['knowledge'] as const,
+    /** Crops enabled for diagnosis (GET /knowledge/crops). */
+    crops: () => [...queryKeys.knowledge.all, 'crops'] as const,
+  },
+  articles: {
+    all: ['articles'] as const,
+    /** Top articles of every crop (GET /knowledge/articles/top) — home. */
+    top: () => [...queryKeys.articles.all, 'top'] as const,
+  },
   reviews: {
     all: ['reviews'] as const,
     /** Prefix of every review query of one shop — a new review of the shop makes all of them stale. */

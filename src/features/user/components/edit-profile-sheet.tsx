@@ -48,7 +48,7 @@ export function EditProfileSheet({ sheetRef, onClose }: TEditProfileSheetProps) 
   const update = useUpdateMe(user?.id ?? '');
   const isDistributor = user?.role !== 'FARMER';
   const form = useAppForm<TEditProfileFormValues>({
-    schema: getEditProfileSchema(user?.role ?? 'DISTRIBUTOR'),
+    schema: getEditProfileSchema(user?.role === 'FARMER' ? 'FARMER' : 'DISTRIBUTOR'),
     defaultValues: toFormValues(user),
   });
   // Latest session user for the reset on dismiss (the refetch after a save lands just before the sheet closes).

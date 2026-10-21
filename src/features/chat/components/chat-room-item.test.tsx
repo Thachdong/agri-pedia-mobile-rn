@@ -19,7 +19,7 @@ describe('ChatRoomItem', () => {
   it('own last message → "Bạn: ..."; no username / no message fallbacks', async () => {
     await render(
       <ChatRoomItem
-        room={chatRoom({ lastMessage: { messageId: 'm1', senderId: 'u1', message: 'ok' } })}
+        room={chatRoom({ lastMessage: { messageId: 'm1', senderId: 'u1', message: 'ok', type: 'TEXT', diagnosisId: null } })}
         currentUserId="u1"
         onPress={jest.fn()}
         now={NOW}

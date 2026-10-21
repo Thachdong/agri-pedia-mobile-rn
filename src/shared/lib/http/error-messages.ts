@@ -105,4 +105,9 @@ const MESSAGES: Record<string, string> = {
   REVIEW_TARGET_NOT_FOUND: 'Shop hoặc sản phẩm không còn tồn tại.',
   REVIEW_ALREADY_EXISTS: 'Bạn đã đánh giá rồi.',
   REVIEW_INVALID_TARGET: 'Hiện chưa thể đánh giá mục này.',
+  // Diagnosis
+  DIAGNOSIS_INVALID_IMAGE: 'Ảnh không hợp lệ hoặc không đọc được, hãy chọn ảnh khác',
+  DIAGNOSIS_CROP_NOT_SUPPORTED: 'Cây trồng chưa được hỗ trợ',
+  DIAGNOSIS_USER_NOT_ALLOWED: 'Tài khoản chưa kích hoạt, không thể chẩn đoán',
+  DIAGNOSIS_DAILY_LIMIT_EXCEEDED: 'Bạn đã dùng hết lượt chẩn đoán hôm nay, vui lòng thử lại ngày mai',
 };
