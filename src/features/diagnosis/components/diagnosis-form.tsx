@@ -224,13 +224,13 @@ export function DiagnosisForm({ crop, settings, guest = false, onRequireLogin, c
 
       {guest ? (
         // Guest: looks like the note field, a tap asks to log in (no keyboard).
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Ghi chú, cần đăng nhập"
-          onPress={onRequireLogin}
-        >
+        <Pressable accessibilityRole="button" accessibilityLabel="Ghi chú, cần đăng nhập" onPress={onRequireLogin}>
           <View pointerEvents="none">
-            <FormInput label="Ghi chú (không bắt buộc)" editable={false} placeholder="Triệu chứng, thời gian xuất hiện..." />
+            <FormInput
+              label="Ghi chú (không bắt buộc)"
+              editable={false}
+              placeholder="Triệu chứng, thời gian xuất hiện..."
+            />
           </View>
         </Pressable>
       ) : (

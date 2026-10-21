@@ -56,7 +56,7 @@ ui_ux_rn/
     │   │   ├── atoms/               # button, text, input, avatar, star-rating ... + index.ts
     │   │   ├── molecules/           # form-input, otp-code-input, countdown-resend ... + index.ts
     │   │   ├── organisms/           # app-header, infinite-list ... + index.ts
-    │   │   └── templates/           # auth-layout, map-list-layout, profile-layout + index.ts
+    │   │   └── templates/           # auth-layout, screen-layout, profile-layout + index.ts
     │   ├── hooks/                   # use-countdown.ts ... (UI behaviour only)
     │   ├── utils/                   # format-price.util.ts ...
     │   ├── constants/               # routes.constants.ts ...

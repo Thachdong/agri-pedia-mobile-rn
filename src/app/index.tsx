@@ -1,35 +1,42 @@
-import { Redirect } from 'expo-router';
+import { View } from 'react-native';
+import { TopArticlesSection } from '@/features/article';
 import { useSession } from '@/features/auth';
+import { HomeDiagnosisPanel } from '@/features/diagnosis';
 import {
-  DistributorExplorerFilter,
   DistributorExplorerList,
-  DistributorExplorerMap,
   DistributorExplorerProvider,
+  DistributorExplorerSection,
 } from '@/features/distributor';
 import { AccountHeaderActions } from '@/features/user';
 import { SiteHeader } from '@/shared/components/organisms';
-import { MapListLayout } from '@/shared/components/templates';
-import { ROUTES } from '@/shared/constants';
+import { ScreenLayout } from '@/shared/components/templates';
 
 /**
- * Home "/" (ui-ux.md §6, image-4) — public. (1)–(4) header by session, (5) map + (7) list from one nearby query keyed
- * by the (6) filter. A logged-in DISTRIBUTOR has no use for the search → own profile (same as web).
+ * Home "/" (Specs/19102026) — public, one vertical scroll: diagnosis form → top articles → distributors (map + filter
+ * + list; the map starts when scrolled to). The distributor list is the scroll, the other blocks are its header.
+ * - Guest: form with the default crop, any use → login sheet; header without chat / notification / user.
+ * - FARMER: everything usable.
+ * - DISTRIBUTOR: same, its own shop pinned first and the other shops not openable.
  */
 export default function HomeScreen() {
   const session = useSession();
-
-  if (session.status === 'authenticated' && session.user.role === 'DISTRIBUTOR') {
-    return <Redirect href={ROUTES.profile(session.user.id)} />;
-  }
+  const ownShopId =
+    session.status === 'authenticated' && session.user.role === 'DISTRIBUTOR' ? session.user.id : undefined;
 
   return (
-    <DistributorExplorerProvider>
-      <MapListLayout
-        header={<SiteHeader actions={<AccountHeaderActions />} />}
-        map={<DistributorExplorerMap className="flex-1" />}
-        filters={<DistributorExplorerFilter />}
-        list={<DistributorExplorerList />}
-      />
-    </DistributorExplorerProvider>
+    <ScreenLayout header={<SiteHeader actions={<AccountHeaderActions />} />}>
+      <DistributorExplorerProvider ownShopId={ownShopId}>
+        <DistributorExplorerList
+          header={
+            // DistributorExplorerSection must stay a direct child of this root (its layout y = scroll offset).
+            <View className="gap-6 pb-2">
+              <HomeDiagnosisPanel guest={session.status === 'guest'} />
+              <TopArticlesSection />
+              <DistributorExplorerSection />
+            </View>
+          }
+        />
+      </DistributorExplorerProvider>
+    </ScreenLayout>
   );
 }

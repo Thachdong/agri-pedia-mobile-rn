@@ -16,7 +16,16 @@ export function useChatRealtime() {
 
   useRealtimeEvent<TChatMessageReceivedEvent>(CHAT_EVENTS.received, ({ messageId, roomId, senderId, message, createdAt }) => {
     client.setQueryData<TChatMessagesCache>(queryKeys.chat.messages(roomId), (cache) =>
-      prependMessage(cache, { id: messageId, senderId, senderUsername: null, senderAvatar: null, message, type: 'TEXT', diagnosisId: null, createdAt }),
+      prependMessage(cache, {
+        id: messageId,
+        senderId,
+        senderUsername: null,
+        senderAvatar: null,
+        message,
+        type: 'TEXT',
+        diagnosisId: null,
+        createdAt,
+      }),
     );
     void client.invalidateQueries({ queryKey: queryKeys.chat.rooms() });
   });
