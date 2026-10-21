@@ -19,4 +19,11 @@ export const ROUTES = {
   chatRoom: (roomId: string) => `/chat/${roomId}` as const,
   /** Chat with one user (profile Chat): opens the existing room, or a new conversation by `receiverId`. */
   chatWithUser: (userId: string) => `/chat/user/${userId}` as const,
+  /** Disease articles (MOCK screens for now — out of the home scope). */
+  articles: {
+    crop: (cropSlug: string) => `/articles/${cropSlug}` as const,
+    detail: (cropSlug: string, slug: string) => `/articles/${cropSlug}/${slug}` as const,
+  },
+  /** Report of one diagnosis (private; MOCK screen for now). */
+  diagnosis: (id: string) => `/diagnosis/${id}` as const,
 } as const;

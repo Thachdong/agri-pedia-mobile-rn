@@ -1,4 +1,5 @@
 // Public API of the `diagnosis` feature. Other features and src/app import only this file.
+export { HomeDiagnosisPanel, type THomeDiagnosisPanelProps } from './components/home-diagnosis-panel';
 export { diagnosisSettingsQuery } from './hooks/diagnosis.queries';
 export { cropsQuery } from './hooks/knowledge.queries';
 export { useCreateDiagnosis } from './hooks/use-create-diagnosis';
